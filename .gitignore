@@ -1,0 +1,58 @@
+# Maven build output
+target/
+
+# Keep Maven Wrapper files in Git
+!.mvn/wrapper/maven-wrapper.jar
+
+# Application logs
+*.log
+logs/
+
+# Environment variables and secret files
+.env
+.env.*
+application-local.properties
+application-secret.properties
+
+# Uploaded evidence and generated reports
+uploads/
+evidence-storage/
+generated-reports/
+reports/
+
+# Spring Tools / Eclipse
+.apt_generated/
+.classpath
+.factorypath
+.project
+.settings/
+.springBeans
+.sts4-cache/
+.metadata/
+
+# IntelliJ IDEA
+.idea/
+*.iws
+*.iml
+*.ipr
+
+# NetBeans
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+build/
+
+# VS Code
+.vscode/
+
+# Operating system files
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.bak
+*.swp
+*~
