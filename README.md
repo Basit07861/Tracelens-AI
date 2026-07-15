@@ -35,6 +35,26 @@ The platform is designed to help authorised investigators organise digital evide
 - Added the protected current-user endpoint
 - Added handling for invalid credentials and disabled accounts
 
+### Day 3 — Investigation Case Management
+
+- Created the `InvestigationCase` JPA entity
+- Added case-status and case-priority enums
+- Connected investigation cases to their user owners
+- Added unique human-readable case numbers
+- Added case lifecycle timestamps
+- Added indexes for owner, status, priority, and creation time
+- Implemented authenticated case creation
+- Implemented case retrieval, update, status update, and deletion
+- Enforced JWT-based case ownership
+- Added case request validation and normalisation
+- Added keyword search across case number, title, and description
+- Added status and priority filtering
+- Added pagination and sorting
+- Restricted sorting to approved fields
+- Added validation for invalid pagination and sort values
+- Added safe handling for unsupported enum values
+- Fixed searchable MySQL `TEXT` mapping for Hibernate
+
 ## Technology Stack
 
 - Java 17 compatible
@@ -48,6 +68,7 @@ The platform is designed to help authorised investigators organise digital evide
 - Hibernate
 - MySQL
 - Maven
+- GitHub Desktop
 
 ## Current Project Structure
 
@@ -65,13 +86,34 @@ com.tracelens
 │       └── AuthService.java
 │
 ├── common
-│   └── ApiResponse.java
+│   ├── ApiResponse.java
+│   └── PageResponse.java
 │
 ├── exception
+│   ├── CaseNotFoundException.java
 │   ├── DuplicateEmailException.java
 │   ├── ErrorResponse.java
 │   ├── GlobalExceptionHandler.java
+│   ├── InvalidRequestException.java
 │   └── UserNotFoundException.java
+│
+├── investigation
+│   ├── controller
+│   │   └── InvestigationCaseController.java
+│   ├── dto
+│   │   ├── CaseResponse.java
+│   │   ├── CreateCaseRequest.java
+│   │   ├── UpdateCaseRequest.java
+│   │   └── UpdateCaseStatusRequest.java
+│   ├── entity
+│   │   ├── CasePriority.java
+│   │   ├── CaseStatus.java
+│   │   └── InvestigationCase.java
+│   ├── repository
+│   │   ├── InvestigationCaseRepository.java
+│   │   └── InvestigationCaseSpecifications.java
+│   └── service
+│       └── InvestigationCaseService.java
 │
 ├── security
 │   ├── CustomUserDetailsService.java
@@ -97,7 +139,7 @@ com.tracelens
 
 ## Environment Variables
 
-The application requires the following environment variables:
+The application requires these environment variables:
 
 ```text
 DB_PASSWORD=your_mysql_password
@@ -111,7 +153,7 @@ DB_USERNAME=root
 DB_URL=jdbc:mysql://localhost:3306/tracelens_db
 ```
 
-Do not commit real passwords, JWT secrets, API keys, or authentication tokens to GitHub.
+Do not commit real passwords, JWT secrets, API keys, access tokens, or uploaded evidence to GitHub.
 
 ### Eclipse / Spring Tools Setup
 
@@ -132,7 +174,7 @@ DB_PASSWORD
 JWT_SECRET
 ```
 
-The real values remain in the local run configuration and are not stored in the source code.
+The real values remain inside the local run configuration and are not stored in the source code.
 
 ## Database Setup
 
@@ -150,15 +192,18 @@ Select the database:
 USE tracelens_db;
 ```
 
-Hibernate creates and updates the required tables from the JPA entities.
+Hibernate creates and updates the database tables from the JPA entities.
 
-The current database contains the following main table:
+The current database contains:
 
 ```text
 users
+investigation_cases
 ```
 
-The `users` table stores:
+### `users` Table
+
+Stores:
 
 - User ID
 - Full name
@@ -169,9 +214,25 @@ The `users` table stores:
 - Creation timestamp
 - Update timestamp
 
+### `investigation_cases` Table
+
+Stores:
+
+- Internal case ID
+- Unique case number
+- Case title
+- Case description
+- Status
+- Priority
+- Owner ID
+- Creation timestamp
+- Update timestamp
+
+Every investigation case is connected to an existing user through the `owner_id` foreign key.
+
 ## Application Configuration
 
-The database password and JWT secret are loaded through environment variables:
+Database credentials and JWT configuration are loaded through environment variables:
 
 ```properties
 spring.datasource.username=${DB_USERNAME:root}
@@ -208,6 +269,33 @@ Tomcat started on port 8080
 Started TracelensBackendApplication
 ```
 
+## Authentication
+
+The application uses stateless JWT authentication.
+
+Authentication flow:
+
+```text
+Register user
+→ Password is hashed using BCrypt
+→ Log in using email and password
+→ Receive signed JWT access token
+→ Send token in Authorization header
+→ Access protected endpoints
+```
+
+Protected requests must include:
+
+```http
+Authorization: Bearer <access-token>
+```
+
+JWT access tokens currently expire after:
+
+```text
+60 minutes
+```
+
 ## Available APIs
 
 ### System Status
@@ -216,7 +304,7 @@ Started TracelensBackendApplication
 GET /api/system/status
 ```
 
-This is a public endpoint used to verify that the Spring Boot application and MySQL database are connected.
+Public endpoint used to verify the Spring Boot application and MySQL connection.
 
 Example local URL:
 
@@ -236,6 +324,8 @@ A successful response includes:
   }
 }
 ```
+
+---
 
 ### Register User
 
@@ -267,6 +357,8 @@ INVESTIGATOR
 
 Passwords are stored as BCrypt hashes and are never returned through the API.
 
+---
+
 ### Login
 
 ```http
@@ -286,8 +378,8 @@ A successful login returns:
 
 - JWT access token
 - Token type
-- Token expiration time
-- Safe user details
+- Token-expiration time
+- Safe user information
 
 Example response structure:
 
@@ -300,7 +392,7 @@ Example response structure:
     "tokenType": "Bearer",
     "expiresIn": 3600,
     "user": {
-      "id": 1,
+      "id": 2,
       "fullName": "Basit Mahmood",
       "email": "basit.test@example.com",
       "role": "INVESTIGATOR",
@@ -310,21 +402,345 @@ Example response structure:
 }
 ```
 
+---
+
 ### Get Current User
 
 ```http
 GET /api/auth/me
 ```
 
-This is a protected endpoint.
+Protected endpoint that returns the currently authenticated user’s safe profile information.
 
-Send the access token using the following request header:
+Request header:
 
 ```http
 Authorization: Bearer <access-token>
 ```
 
-The endpoint returns the currently authenticated user’s safe profile information.
+---
+
+## Investigation Case APIs
+
+All case endpoints require a valid JWT access token.
+
+### Create Investigation Case
+
+```http
+POST /api/cases
+```
+
+Example request:
+
+```json
+{
+  "title": "Suspicious Invoice Investigation",
+  "description": "Investigate possible invoice manipulation and an unusual payment request.",
+  "priority": "HIGH"
+}
+```
+
+A successful response returns:
+
+```text
+201 Created
+```
+
+The backend automatically:
+
+- Generates a unique case number
+- Sets the initial status to `OPEN`
+- Uses `MEDIUM` when priority is omitted
+- Associates the case with the authenticated user
+- Adds creation and update timestamps
+
+Example generated case number:
+
+```text
+TL-20260715-YV3SBJQ4
+```
+
+---
+
+### Retrieve One Investigation Case
+
+```http
+GET /api/cases/{caseId}
+```
+
+The case is returned only when it belongs to the authenticated user.
+
+A missing or unowned case returns:
+
+```text
+404 Not Found
+```
+
+This prevents investigators from accessing cases owned by other users.
+
+---
+
+### Update Investigation Case
+
+```http
+PUT /api/cases/{caseId}
+```
+
+Example request:
+
+```json
+{
+  "title": "Critical Invoice Manipulation Investigation",
+  "description": "Investigate invoice manipulation, payment instructions, and related communication records.",
+  "priority": "CRITICAL"
+}
+```
+
+This endpoint updates:
+
+- Title
+- Description
+- Priority
+
+Status is updated through a separate endpoint.
+
+---
+
+### Update Case Status
+
+```http
+PATCH /api/cases/{caseId}/status
+```
+
+Example request:
+
+```json
+{
+  "status": "IN_PROGRESS"
+}
+```
+
+Supported values:
+
+```text
+OPEN
+IN_PROGRESS
+COMPLETED
+ARCHIVED
+```
+
+---
+
+### Delete Investigation Case
+
+```http
+DELETE /api/cases/{caseId}
+```
+
+Deletes a case only when it belongs to the authenticated user.
+
+A successful response returns:
+
+```text
+Investigation case deleted successfully
+```
+
+---
+
+### List Investigation Cases
+
+```http
+GET /api/cases
+```
+
+Returns only the authenticated user’s cases.
+
+Default settings:
+
+```text
+page=0
+size=10
+sortBy=createdAt
+sortDirection=desc
+```
+
+Example:
+
+```http
+GET /api/cases?page=0&size=10
+```
+
+The paginated response contains:
+
+- Case records
+- Current page number
+- Page size
+- Total records
+- Total pages
+- First-page indicator
+- Last-page indicator
+- Next-page availability
+- Previous-page availability
+- Sorting information
+
+Example structure:
+
+```json
+{
+  "success": true,
+  "message": "Investigation cases retrieved successfully",
+  "data": {
+    "content": [],
+    "pageNumber": 0,
+    "pageSize": 10,
+    "totalElements": 0,
+    "totalPages": 0,
+    "first": true,
+    "last": true,
+    "hasNext": false,
+    "hasPrevious": false,
+    "sortBy": "createdAt",
+    "sortDirection": "desc"
+  }
+}
+```
+
+## Case Search and Filtering
+
+### Keyword Search
+
+```http
+GET /api/cases?keyword=invoice
+```
+
+The keyword is searched in:
+
+- Case number
+- Case title
+- Case description
+
+Search is case-insensitive.
+
+### Status Filter
+
+```http
+GET /api/cases?status=IN_PROGRESS
+```
+
+Supported values:
+
+```text
+OPEN
+IN_PROGRESS
+COMPLETED
+ARCHIVED
+```
+
+### Priority Filter
+
+```http
+GET /api/cases?priority=HIGH
+```
+
+Supported values:
+
+```text
+LOW
+MEDIUM
+HIGH
+CRITICAL
+```
+
+### Combined Filters
+
+```http
+GET /api/cases?keyword=invoice&status=IN_PROGRESS&priority=HIGH
+```
+
+### Pagination
+
+```http
+GET /api/cases?page=0&size=10
+```
+
+Rules:
+
+```text
+page must be 0 or greater
+size must be between 1 and 100
+```
+
+### Sorting
+
+```http
+GET /api/cases?sortBy=title&sortDirection=asc
+```
+
+Supported sort fields:
+
+```text
+id
+caseNumber
+title
+status
+priority
+createdAt
+updatedAt
+```
+
+Supported directions:
+
+```text
+asc
+desc
+```
+
+Complete example:
+
+```http
+GET /api/cases?keyword=invoice&status=IN_PROGRESS&priority=HIGH&page=0&size=10&sortBy=createdAt&sortDirection=desc
+```
+
+## Case Status Values
+
+```text
+OPEN
+```
+
+The case has been created but active investigation has not started.
+
+```text
+IN_PROGRESS
+```
+
+The investigator is currently reviewing evidence and recording findings.
+
+```text
+COMPLETED
+```
+
+The investigation and final reporting work are complete.
+
+```text
+ARCHIVED
+```
+
+The case is retained for historical reference and is no longer actively managed.
+
+## Case Priority Values
+
+```text
+LOW
+MEDIUM
+HIGH
+CRITICAL
+```
+
+When priority is omitted during case creation, the backend assigns:
+
+```text
+MEDIUM
+```
 
 ## Current Security Rules
 
@@ -336,15 +752,50 @@ POST /api/auth/register
 POST /api/auth/login
 ```
 
-All other endpoints require a valid JWT access token.
-
-JWT access tokens currently expire after:
+The following endpoints require JWT authentication:
 
 ```text
-60 minutes
+GET    /api/auth/me
+POST   /api/cases
+GET    /api/cases
+GET    /api/cases/{caseId}
+PUT    /api/cases/{caseId}
+PATCH  /api/cases/{caseId}/status
+DELETE /api/cases/{caseId}
 ```
 
-The application uses stateless authentication, which means the backend does not store HTTP login sessions.
+The application uses stateless authentication, so the backend does not store HTTP login sessions.
+
+## Ownership Protection
+
+Every investigation case is associated with the authenticated user.
+
+The backend does not accept an owner ID from the client.
+
+Ownership is taken from the validated JWT:
+
+```text
+JWT subject
+→ Authenticated email
+→ Database user
+→ Investigation case owner
+```
+
+Case retrieval, updates, status changes, and deletion verify both:
+
+```text
+Case ID matches
+AND
+Owner email matches authenticated user
+```
+
+A case belonging to another investigator is returned as:
+
+```text
+404 Not Found
+```
+
+This avoids revealing whether another user’s case exists.
 
 ## Validation Rules
 
@@ -373,16 +824,61 @@ Password:
 - Must contain one number
 - Must contain one supported special character
 
+### Case Creation
+
+Title:
+
+- Required
+- Minimum 5 characters
+- Maximum 150 characters
+
+Description:
+
+- Required
+- Minimum 10 characters
+- Maximum 5000 characters
+
+Priority:
+
+- Optional
+- Defaults to `MEDIUM`
+- Must be a supported `CasePriority` value
+
+### Case Update
+
+Title:
+
+- Required
+- Minimum 5 characters
+- Maximum 150 characters
+
+Description:
+
+- Required
+- Minimum 10 characters
+- Maximum 5000 characters
+
+Priority:
+
+- Required
+- Must be a supported `CasePriority` value
+
 ## Error Handling
 
 The API currently handles:
 
-- Invalid registration fields with `400 Bad Request`
+- Invalid request fields with `400 Bad Request`
+- Malformed JSON with `400 Bad Request`
+- Unsupported enum values with `400 Bad Request`
+- Invalid pagination values with `400 Bad Request`
+- Unsupported sorting fields with `400 Bad Request`
+- Invalid request-parameter types with `400 Bad Request`
 - Duplicate email registrations with `409 Conflict`
 - Invalid login credentials with `401 Unauthorized`
 - Missing or invalid JWT tokens with `401 Unauthorized`
 - Disabled user accounts with `403 Forbidden`
 - Missing users with `404 Not Found`
+- Missing or unowned investigation cases with `404 Not Found`
 - Database constraint conflicts with `409 Conflict`
 - Unexpected server errors with `500 Internal Server Error`
 
@@ -394,32 +890,33 @@ Example validation-error structure:
   "status": 400,
   "error": "Bad Request",
   "message": "Request validation failed",
-  "path": "/api/auth/register",
+  "path": "/api/cases",
   "fieldErrors": {
-    "email": "Enter a valid email address",
-    "password": "Password must contain an uppercase letter, lowercase letter, number and special character"
+    "title": "Case title is required",
+    "description": "Case description must contain between 10 and 5000 characters"
   }
 }
 ```
 
 ## Planned Features
 
-- Investigation case management
-- Case ownership and role-based access
-- Case status and priority tracking
 - Digital evidence upload
-- PDF, TXT, CSV, and JSON text extraction
+- File-type and file-size validation
+- Evidence metadata storage
 - SHA-256 evidence-integrity verification
+- PDF, TXT, CSV, and JSON text extraction
 - Spring AI integration
-- AI-powered evidence analysis
+- AI-powered evidence summarisation
 - Suspicious-activity detection
-- Entity extraction
+- Risk-level classification
+- Person, organisation, location, and date extraction
 - Investigation timeline generation
 - Investigator notes
 - Final investigation reports
 - Dashboard and analytics
-- Automated testing
-- Deployment
+- Automated tests
+- API documentation
+- Docker deployment
 
 ## Git Workflow
 
