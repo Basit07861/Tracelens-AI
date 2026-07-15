@@ -12,13 +12,17 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tracelens.common.ApiResponse;
+import com.tracelens.common.PageResponse;
 import com.tracelens.investigation.dto.CaseResponse;
 import com.tracelens.investigation.dto.CreateCaseRequest;
 import com.tracelens.investigation.dto.UpdateCaseRequest;
 import com.tracelens.investigation.dto.UpdateCaseStatusRequest;
+import com.tracelens.investigation.entity.CasePriority;
+import com.tracelens.investigation.entity.CaseStatus;
 import com.tracelens.investigation.service.InvestigationCaseService;
 
 import jakarta.validation.Valid;
@@ -56,6 +60,55 @@ public class InvestigationCaseController {
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .body(response);
+    }
+
+    @GetMapping
+    public ResponseEntity<ApiResponse<PageResponse<CaseResponse>>>
+            getCases(
+
+                    @RequestParam(required = false)
+                    String keyword,
+
+                    @RequestParam(required = false)
+                    CaseStatus status,
+
+                    @RequestParam(required = false)
+                    CasePriority priority,
+
+                    @RequestParam(defaultValue = "0")
+                    int page,
+
+                    @RequestParam(defaultValue = "10")
+                    int size,
+
+                    @RequestParam(defaultValue = "createdAt")
+                    String sortBy,
+
+                    @RequestParam(defaultValue = "desc")
+                    String sortDirection,
+
+                    @AuthenticationPrincipal Jwt jwt
+            ) {
+
+        PageResponse<CaseResponse> cases =
+                caseService.getCases(
+                        jwt.getSubject(),
+                        keyword,
+                        status,
+                        priority,
+                        page,
+                        size,
+                        sortBy,
+                        sortDirection
+                );
+
+        ApiResponse<PageResponse<CaseResponse>> response =
+                ApiResponse.success(
+                        "Investigation cases retrieved successfully",
+                        cases
+                );
+
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/{caseId}")
@@ -105,9 +158,12 @@ public class InvestigationCaseController {
     @PatchMapping("/{caseId}/status")
     public ResponseEntity<ApiResponse<CaseResponse>>
             updateCaseStatus(
+
                     @PathVariable Long caseId,
+
                     @Valid @RequestBody
                     UpdateCaseStatusRequest request,
+
                     @AuthenticationPrincipal Jwt jwt
             ) {
 

@@ -15,7 +15,6 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.Lob;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
@@ -69,7 +68,10 @@ public class InvestigationCase {
     )
     private String title;
 
-    @Lob
+    /*
+     * Stored as MySQL TEXT, but deliberately not marked with @Lob.
+     * This keeps the Java attribute mapped as a searchable String.
+     */
     @Column(
             nullable = false,
             columnDefinition = "TEXT"

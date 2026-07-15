@@ -5,11 +5,18 @@ import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.Locale;
+import java.util.Set;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.tracelens.common.PageResponse;
 import com.tracelens.exception.CaseNotFoundException;
+import com.tracelens.exception.InvalidRequestException;
 import com.tracelens.exception.UserNotFoundException;
 import com.tracelens.investigation.dto.CaseResponse;
 import com.tracelens.investigation.dto.CreateCaseRequest;
@@ -19,6 +26,7 @@ import com.tracelens.investigation.entity.CasePriority;
 import com.tracelens.investigation.entity.CaseStatus;
 import com.tracelens.investigation.entity.InvestigationCase;
 import com.tracelens.investigation.repository.InvestigationCaseRepository;
+import com.tracelens.investigation.repository.InvestigationCaseSpecifications;
 import com.tracelens.user.entity.User;
 import com.tracelens.user.repository.UserRepository;
 
@@ -31,6 +39,19 @@ public class InvestigationCaseService {
     private static final int RANDOM_PART_LENGTH = 8;
 
     private static final int CASE_NUMBER_GENERATION_ATTEMPTS = 10;
+
+    private static final int MAXIMUM_PAGE_SIZE = 100;
+
+    private static final Set<String> ALLOWED_SORT_FIELDS =
+            Set.of(
+                    "id",
+                    "caseNumber",
+                    "title",
+                    "status",
+                    "priority",
+                    "createdAt",
+                    "updatedAt"
+            );
 
     private static final SecureRandom SECURE_RANDOM =
             new SecureRandom();
@@ -100,6 +121,68 @@ public class InvestigationCaseService {
                 findOwnedCase(caseId, authenticatedEmail);
 
         return mapToResponse(investigationCase);
+    }
+
+    @Transactional(readOnly = true)
+    public PageResponse<CaseResponse> getCases(
+            String authenticatedEmail,
+            String keyword,
+            CaseStatus status,
+            CasePriority priority,
+            int page,
+            int size,
+            String sortBy,
+            String sortDirection
+    ) {
+
+        validatePagination(page, size);
+        validateSortField(sortBy);
+
+        Sort.Direction direction =
+                parseSortDirection(sortDirection);
+
+        PageRequest pageRequest = PageRequest.of(
+                page,
+                size,
+                Sort.by(direction, sortBy)
+        );
+
+        Specification<InvestigationCase> specification =
+                InvestigationCaseSpecifications
+                        .ownedByEmail(authenticatedEmail);
+
+        if (keyword != null && !keyword.isBlank()) {
+            specification = specification.and(
+                    InvestigationCaseSpecifications
+                            .keywordContains(keyword)
+            );
+        }
+
+        if (status != null) {
+            specification = specification.and(
+                    InvestigationCaseSpecifications
+                            .hasStatus(status)
+            );
+        }
+
+        if (priority != null) {
+            specification = specification.and(
+                    InvestigationCaseSpecifications
+                            .hasPriority(priority)
+            );
+        }
+
+        Page<CaseResponse> responsePage =
+                caseRepository
+                        .findAll(specification, pageRequest)
+                        .map(this::mapToResponse);
+
+        return PageResponse.from(
+                responsePage,
+                sortBy,
+                direction.name()
+                        .toLowerCase(Locale.ROOT)
+        );
     }
 
     @Transactional
@@ -193,9 +276,11 @@ public class InvestigationCaseService {
                 Instant.now()
         );
 
-        for (int attempt = 0;
+        for (
+                int attempt = 0;
                 attempt < CASE_NUMBER_GENERATION_ATTEMPTS;
-                attempt++) {
+                attempt++
+        ) {
 
             String candidate =
                     "TL-"
@@ -218,9 +303,11 @@ public class InvestigationCaseService {
         StringBuilder result =
                 new StringBuilder(RANDOM_PART_LENGTH);
 
-        for (int index = 0;
+        for (
+                int index = 0;
                 index < RANDOM_PART_LENGTH;
-                index++) {
+                index++
+        ) {
 
             int randomIndex = SECURE_RANDOM.nextInt(
                     CASE_NUMBER_CHARACTERS.length()
@@ -232,6 +319,53 @@ public class InvestigationCaseService {
         }
 
         return result.toString();
+    }
+
+    private void validatePagination(
+            int page,
+            int size
+    ) {
+
+        if (page < 0) {
+            throw new InvalidRequestException(
+                    "Page number cannot be negative"
+            );
+        }
+
+        if (size < 1 || size > MAXIMUM_PAGE_SIZE) {
+            throw new InvalidRequestException(
+                    "Page size must be between 1 and "
+                    + MAXIMUM_PAGE_SIZE
+            );
+        }
+    }
+
+    private void validateSortField(String sortBy) {
+
+        if (sortBy == null
+                || !ALLOWED_SORT_FIELDS.contains(sortBy)) {
+
+            throw new InvalidRequestException(
+                    "Unsupported case sorting field"
+            );
+        }
+    }
+
+    private Sort.Direction parseSortDirection(
+            String sortDirection
+    ) {
+
+        if (sortDirection == null) {
+            throw new InvalidRequestException(
+                    "Sort direction is required"
+            );
+        }
+
+        return Sort.Direction
+                .fromOptionalString(sortDirection)
+                .orElseThrow(() -> new InvalidRequestException(
+                        "Sort direction must be 'asc' or 'desc'"
+                ));
     }
 
     private String normalizeEmail(String email) {

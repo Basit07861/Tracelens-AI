@@ -17,6 +17,7 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import jakarta.servlet.http.HttpServletRequest;
 
@@ -73,6 +74,52 @@ public class GlobalExceptionHandler {
                 HttpStatus.BAD_REQUEST.value(),
                 HttpStatus.BAD_REQUEST.getReasonPhrase(),
                 "Request body is malformed or contains unsupported values",
+                request.getRequestURI(),
+                Map.of(),
+                Instant.now()
+        );
+
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(errorResponse);
+    }
+
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<ErrorResponse>
+            handleRequestParameterTypeMismatch(
+                    MethodArgumentTypeMismatchException exception,
+                    HttpServletRequest request
+            ) {
+
+        ErrorResponse errorResponse = new ErrorResponse(
+                false,
+                HttpStatus.BAD_REQUEST.value(),
+                HttpStatus.BAD_REQUEST.getReasonPhrase(),
+                "Invalid value for request parameter '"
+                        + exception.getName()
+                        + "'",
+                request.getRequestURI(),
+                Map.of(),
+                Instant.now()
+        );
+
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(errorResponse);
+    }
+
+    @ExceptionHandler(InvalidRequestException.class)
+    public ResponseEntity<ErrorResponse>
+            handleInvalidRequestException(
+                    InvalidRequestException exception,
+                    HttpServletRequest request
+            ) {
+
+        ErrorResponse errorResponse = new ErrorResponse(
+                false,
+                HttpStatus.BAD_REQUEST.value(),
+                HttpStatus.BAD_REQUEST.getReasonPhrase(),
+                exception.getMessage(),
                 request.getRequestURI(),
                 Map.of(),
                 Instant.now()
