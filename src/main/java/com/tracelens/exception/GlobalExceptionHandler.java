@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -52,6 +53,28 @@ public class GlobalExceptionHandler {
                 "Request validation failed",
                 request.getRequestURI(),
                 fieldErrors,
+                Instant.now()
+        );
+
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(errorResponse);
+    }
+
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<ErrorResponse>
+            handleUnreadableRequestBody(
+                    HttpMessageNotReadableException exception,
+                    HttpServletRequest request
+            ) {
+
+        ErrorResponse errorResponse = new ErrorResponse(
+                false,
+                HttpStatus.BAD_REQUEST.value(),
+                HttpStatus.BAD_REQUEST.getReasonPhrase(),
+                "Request body is malformed or contains unsupported values",
+                request.getRequestURI(),
+                Map.of(),
                 Instant.now()
         );
 
@@ -133,6 +156,28 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse>
             handleUserNotFoundException(
                     UserNotFoundException exception,
+                    HttpServletRequest request
+            ) {
+
+        ErrorResponse errorResponse = new ErrorResponse(
+                false,
+                HttpStatus.NOT_FOUND.value(),
+                HttpStatus.NOT_FOUND.getReasonPhrase(),
+                exception.getMessage(),
+                request.getRequestURI(),
+                Map.of(),
+                Instant.now()
+        );
+
+        return ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
+                .body(errorResponse);
+    }
+
+    @ExceptionHandler(CaseNotFoundException.class)
+    public ResponseEntity<ErrorResponse>
+            handleCaseNotFoundException(
+                    CaseNotFoundException exception,
                     HttpServletRequest request
             ) {
 
