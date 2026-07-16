@@ -18,6 +18,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
 import jakarta.servlet.http.HttpServletRequest;
 
@@ -25,21 +26,27 @@ import jakarta.servlet.http.HttpServletRequest;
 public class GlobalExceptionHandler {
 
     private static final Logger LOGGER =
-            LoggerFactory.getLogger(GlobalExceptionHandler.class);
+            LoggerFactory.getLogger(
+                    GlobalExceptionHandler.class
+            );
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ErrorResponse> handleValidationException(
-            MethodArgumentNotValidException exception,
-            HttpServletRequest request
-    ) {
+    public ResponseEntity<ErrorResponse>
+            handleValidationException(
+
+                    MethodArgumentNotValidException exception,
+                    HttpServletRequest request
+            ) {
 
         Map<String, String> fieldErrors =
                 new LinkedHashMap<>();
 
-        for (FieldError fieldError
+        for (
+                FieldError fieldError
                 : exception
                         .getBindingResult()
-                        .getFieldErrors()) {
+                        .getFieldErrors()
+        ) {
 
             fieldErrors.putIfAbsent(
                     fieldError.getField(),
@@ -65,18 +72,17 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<ErrorResponse>
             handleUnreadableRequestBody(
+
                     HttpMessageNotReadableException exception,
                     HttpServletRequest request
             ) {
 
-        ErrorResponse errorResponse = new ErrorResponse(
-                false,
-                HttpStatus.BAD_REQUEST.value(),
-                HttpStatus.BAD_REQUEST.getReasonPhrase(),
-                "Request body is malformed or contains unsupported values",
-                request.getRequestURI(),
-                Map.of(),
-                Instant.now()
+        ErrorResponse errorResponse = createErrorResponse(
+                HttpStatus.BAD_REQUEST,
+                "Request body is malformed or contains "
+                + "unsupported values",
+                request,
+                Map.of()
         );
 
         return ResponseEntity
@@ -84,23 +90,23 @@ public class GlobalExceptionHandler {
                 .body(errorResponse);
     }
 
-    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    @ExceptionHandler(
+            MethodArgumentTypeMismatchException.class
+    )
     public ResponseEntity<ErrorResponse>
             handleRequestParameterTypeMismatch(
+
                     MethodArgumentTypeMismatchException exception,
                     HttpServletRequest request
             ) {
 
-        ErrorResponse errorResponse = new ErrorResponse(
-                false,
-                HttpStatus.BAD_REQUEST.value(),
-                HttpStatus.BAD_REQUEST.getReasonPhrase(),
+        ErrorResponse errorResponse = createErrorResponse(
+                HttpStatus.BAD_REQUEST,
                 "Invalid value for request parameter '"
-                        + exception.getName()
-                        + "'",
-                request.getRequestURI(),
-                Map.of(),
-                Instant.now()
+                + exception.getName()
+                + "'",
+                request,
+                Map.of()
         );
 
         return ResponseEntity
@@ -111,18 +117,16 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(InvalidRequestException.class)
     public ResponseEntity<ErrorResponse>
             handleInvalidRequestException(
+
                     InvalidRequestException exception,
                     HttpServletRequest request
             ) {
 
-        ErrorResponse errorResponse = new ErrorResponse(
-                false,
-                HttpStatus.BAD_REQUEST.value(),
-                HttpStatus.BAD_REQUEST.getReasonPhrase(),
+        ErrorResponse errorResponse = createErrorResponse(
+                HttpStatus.BAD_REQUEST,
                 exception.getMessage(),
-                request.getRequestURI(),
-                Map.of(),
-                Instant.now()
+                request,
+                Map.of()
         );
 
         return ResponseEntity
@@ -130,21 +134,90 @@ public class GlobalExceptionHandler {
                 .body(errorResponse);
     }
 
+    @ExceptionHandler(InvalidEvidenceFileException.class)
+    public ResponseEntity<ErrorResponse>
+            handleInvalidEvidenceFileException(
+
+                    InvalidEvidenceFileException exception,
+                    HttpServletRequest request
+            ) {
+
+        ErrorResponse errorResponse = createErrorResponse(
+                HttpStatus.BAD_REQUEST,
+                exception.getMessage(),
+                request,
+                Map.of()
+        );
+
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(errorResponse);
+    }
+
+    @ExceptionHandler(
+            MaxUploadSizeExceededException.class
+    )
+    public ResponseEntity<ErrorResponse>
+            handleMaximumUploadSizeExceeded(
+
+                    MaxUploadSizeExceededException exception,
+                    HttpServletRequest request
+            ) {
+
+        ErrorResponse errorResponse = createErrorResponse(
+                HttpStatus.CONTENT_TOO_LARGE,
+                "Evidence file cannot exceed 10 MB",
+                request,
+                Map.of()
+        );
+
+        return ResponseEntity
+                .status(HttpStatus.CONTENT_TOO_LARGE)
+                .body(errorResponse);
+    }
+
+    @ExceptionHandler(EvidenceStorageException.class)
+    public ResponseEntity<ErrorResponse>
+            handleEvidenceStorageException(
+
+                    EvidenceStorageException exception,
+                    HttpServletRequest request
+            ) {
+
+        LOGGER.error(
+                "Evidence storage failure while processing request: {}",
+                request.getRequestURI(),
+                exception
+        );
+
+        ErrorResponse errorResponse = createErrorResponse(
+                HttpStatus.INTERNAL_SERVER_ERROR,
+                "The evidence file could not be stored. "
+                + "Please try again.",
+                request,
+                Map.of()
+        );
+
+        return ResponseEntity
+                .status(
+                        HttpStatus.INTERNAL_SERVER_ERROR
+                )
+                .body(errorResponse);
+    }
+
     @ExceptionHandler(DuplicateEmailException.class)
     public ResponseEntity<ErrorResponse>
             handleDuplicateEmailException(
+
                     DuplicateEmailException exception,
                     HttpServletRequest request
             ) {
 
-        ErrorResponse errorResponse = new ErrorResponse(
-                false,
-                HttpStatus.CONFLICT.value(),
-                HttpStatus.CONFLICT.getReasonPhrase(),
+        ErrorResponse errorResponse = createErrorResponse(
+                HttpStatus.CONFLICT,
                 exception.getMessage(),
-                request.getRequestURI(),
-                Map.of(),
-                Instant.now()
+                request,
+                Map.of()
         );
 
         return ResponseEntity
@@ -158,18 +231,16 @@ public class GlobalExceptionHandler {
     })
     public ResponseEntity<ErrorResponse>
             handleInvalidCredentials(
+
                     RuntimeException exception,
                     HttpServletRequest request
             ) {
 
-        ErrorResponse errorResponse = new ErrorResponse(
-                false,
-                HttpStatus.UNAUTHORIZED.value(),
-                HttpStatus.UNAUTHORIZED.getReasonPhrase(),
+        ErrorResponse errorResponse = createErrorResponse(
+                HttpStatus.UNAUTHORIZED,
                 "Invalid email address or password",
-                request.getRequestURI(),
-                Map.of(),
-                Instant.now()
+                request,
+                Map.of()
         );
 
         return ResponseEntity
@@ -180,18 +251,16 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(DisabledException.class)
     public ResponseEntity<ErrorResponse>
             handleDisabledAccount(
+
                     DisabledException exception,
                     HttpServletRequest request
             ) {
 
-        ErrorResponse errorResponse = new ErrorResponse(
-                false,
-                HttpStatus.FORBIDDEN.value(),
-                HttpStatus.FORBIDDEN.getReasonPhrase(),
+        ErrorResponse errorResponse = createErrorResponse(
+                HttpStatus.FORBIDDEN,
                 "This user account is disabled",
-                request.getRequestURI(),
-                Map.of(),
-                Instant.now()
+                request,
+                Map.of()
         );
 
         return ResponseEntity
@@ -202,18 +271,16 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(UserNotFoundException.class)
     public ResponseEntity<ErrorResponse>
             handleUserNotFoundException(
+
                     UserNotFoundException exception,
                     HttpServletRequest request
             ) {
 
-        ErrorResponse errorResponse = new ErrorResponse(
-                false,
-                HttpStatus.NOT_FOUND.value(),
-                HttpStatus.NOT_FOUND.getReasonPhrase(),
+        ErrorResponse errorResponse = createErrorResponse(
+                HttpStatus.NOT_FOUND,
                 exception.getMessage(),
-                request.getRequestURI(),
-                Map.of(),
-                Instant.now()
+                request,
+                Map.of()
         );
 
         return ResponseEntity
@@ -224,18 +291,16 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(CaseNotFoundException.class)
     public ResponseEntity<ErrorResponse>
             handleCaseNotFoundException(
+
                     CaseNotFoundException exception,
                     HttpServletRequest request
             ) {
 
-        ErrorResponse errorResponse = new ErrorResponse(
-                false,
-                HttpStatus.NOT_FOUND.value(),
-                HttpStatus.NOT_FOUND.getReasonPhrase(),
+        ErrorResponse errorResponse = createErrorResponse(
+                HttpStatus.NOT_FOUND,
                 exception.getMessage(),
-                request.getRequestURI(),
-                Map.of(),
-                Instant.now()
+                request,
+                Map.of()
         );
 
         return ResponseEntity
@@ -243,27 +308,29 @@ public class GlobalExceptionHandler {
                 .body(errorResponse);
     }
 
-    @ExceptionHandler(DataIntegrityViolationException.class)
+    @ExceptionHandler(
+            DataIntegrityViolationException.class
+    )
     public ResponseEntity<ErrorResponse>
             handleDataIntegrityViolation(
+
                     DataIntegrityViolationException exception,
                     HttpServletRequest request
             ) {
 
         LOGGER.warn(
-                "Database constraint violation while processing request: {}",
+                "Database constraint violation while "
+                + "processing request: {}",
                 request.getRequestURI(),
                 exception
         );
 
-        ErrorResponse errorResponse = new ErrorResponse(
-                false,
-                HttpStatus.CONFLICT.value(),
-                HttpStatus.CONFLICT.getReasonPhrase(),
-                "The submitted information conflicts with existing data",
-                request.getRequestURI(),
-                Map.of(),
-                Instant.now()
+        ErrorResponse errorResponse = createErrorResponse(
+                HttpStatus.CONFLICT,
+                "The submitted information conflicts "
+                + "with existing data",
+                request,
+                Map.of()
         );
 
         return ResponseEntity
@@ -274,6 +341,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse>
             handleGeneralException(
+
                     Exception exception,
                     HttpServletRequest request
             ) {
@@ -284,19 +352,36 @@ public class GlobalExceptionHandler {
                 exception
         );
 
-        ErrorResponse errorResponse = new ErrorResponse(
-                false,
-                HttpStatus.INTERNAL_SERVER_ERROR.value(),
-                HttpStatus.INTERNAL_SERVER_ERROR
-                        .getReasonPhrase(),
-                "An unexpected error occurred. Please try again.",
-                request.getRequestURI(),
-                Map.of(),
-                Instant.now()
+        ErrorResponse errorResponse = createErrorResponse(
+                HttpStatus.INTERNAL_SERVER_ERROR,
+                "An unexpected error occurred. "
+                + "Please try again.",
+                request,
+                Map.of()
         );
 
         return ResponseEntity
-                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .status(
+                        HttpStatus.INTERNAL_SERVER_ERROR
+                )
                 .body(errorResponse);
+    }
+
+    private ErrorResponse createErrorResponse(
+            HttpStatus status,
+            String message,
+            HttpServletRequest request,
+            Map<String, String> fieldErrors
+    ) {
+
+        return new ErrorResponse(
+                false,
+                status.value(),
+                status.getReasonPhrase(),
+                message,
+                request.getRequestURI(),
+                fieldErrors,
+                Instant.now()
+        );
     }
 }
