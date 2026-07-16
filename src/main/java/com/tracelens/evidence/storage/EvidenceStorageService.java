@@ -3,6 +3,7 @@ package com.tracelens.evidence.storage;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.MalformedURLException;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -12,6 +13,8 @@ import java.util.UUID;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -150,6 +153,44 @@ public class EvidenceStorageService {
         );
     }
 
+    public Resource loadAsResource(
+            String relativePath
+    ) {
+
+        Path targetPath =
+                resolveRelativePath(relativePath);
+
+        if (!Files.exists(targetPath)
+                || !Files.isRegularFile(targetPath)
+                || !Files.isReadable(targetPath)) {
+
+            throw new EvidenceStorageException(
+                    "The stored evidence file is unavailable"
+            );
+        }
+
+        try {
+            Resource resource =
+                    new UrlResource(targetPath.toUri());
+
+            if (!resource.exists()
+                    || !resource.isReadable()) {
+
+                throw new EvidenceStorageException(
+                        "The stored evidence file is unavailable"
+                );
+            }
+
+            return resource;
+        }
+        catch (MalformedURLException exception) {
+            throw new EvidenceStorageException(
+                    "The stored evidence path is invalid",
+                    exception
+            );
+        }
+    }
+
     public void delete(
             String relativePath
     ) {
@@ -159,6 +200,10 @@ public class EvidenceStorageService {
 
         try {
             Files.deleteIfExists(targetPath);
+
+            deleteEmptyParentDirectory(
+                    targetPath.getParent()
+            );
         }
         catch (IOException exception) {
             throw new EvidenceStorageException(
@@ -231,9 +276,37 @@ public class EvidenceStorageService {
     ) {
 
         if (!candidatePath.startsWith(expectedParent)) {
-
             throw new EvidenceStorageException(
                     "Evidence storage path is invalid"
+            );
+        }
+    }
+
+    private void deleteEmptyParentDirectory(
+            Path directory
+    ) {
+
+        if (directory == null
+                || directory.equals(storageRoot)
+                || !directory.startsWith(storageRoot)) {
+
+            return;
+        }
+
+        try (
+                var children = Files.list(directory)
+        ) {
+
+            if (children.findAny().isEmpty()) {
+                Files.deleteIfExists(directory);
+            }
+        }
+        catch (IOException exception) {
+
+            LOGGER.warn(
+                    "Unable to remove empty evidence directory: {}",
+                    directory,
+                    exception
             );
         }
     }

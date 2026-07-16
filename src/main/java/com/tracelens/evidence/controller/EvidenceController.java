@@ -1,10 +1,17 @@
 package com.tracelens.evidence.controller;
 
+import java.nio.charset.StandardCharsets;
+
+import org.springframework.core.io.Resource;
+import org.springframework.http.ContentDisposition;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -13,8 +20,10 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.tracelens.common.ApiResponse;
+import com.tracelens.common.PageResponse;
 import com.tracelens.evidence.dto.EvidenceResponse;
 import com.tracelens.evidence.service.EvidenceService;
+import com.tracelens.evidence.storage.EvidenceFileResource;
 
 @RestController
 @RequestMapping("/api")
@@ -69,5 +78,122 @@ public class EvidenceController {
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .body(response);
+    }
+
+    @GetMapping("/cases/{caseId}/evidence")
+    public ResponseEntity<
+            ApiResponse<PageResponse<EvidenceResponse>>>
+            getEvidenceForCase(
+
+                    @PathVariable Long caseId,
+
+                    @RequestParam(defaultValue = "0")
+                    int page,
+
+                    @RequestParam(defaultValue = "10")
+                    int size,
+
+                    @AuthenticationPrincipal Jwt jwt
+            ) {
+
+        PageResponse<EvidenceResponse> evidence =
+                evidenceService.getEvidenceForCase(
+                        caseId,
+                        jwt.getSubject(),
+                        page,
+                        size
+                );
+
+        ApiResponse<PageResponse<EvidenceResponse>>
+                response = ApiResponse.success(
+                        "Evidence files retrieved successfully",
+                        evidence
+                );
+
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/evidence/{evidenceId}")
+    public ResponseEntity<ApiResponse<EvidenceResponse>>
+            getEvidence(
+
+                    @PathVariable Long evidenceId,
+                    @AuthenticationPrincipal Jwt jwt
+            ) {
+
+        EvidenceResponse evidence =
+                evidenceService.getEvidence(
+                        evidenceId,
+                        jwt.getSubject()
+                );
+
+        ApiResponse<EvidenceResponse> response =
+                ApiResponse.success(
+                        "Evidence metadata retrieved successfully",
+                        evidence
+                );
+
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/evidence/{evidenceId}/download")
+    public ResponseEntity<Resource> downloadEvidence(
+
+            @PathVariable Long evidenceId,
+            @AuthenticationPrincipal Jwt jwt
+    ) {
+
+        EvidenceFileResource evidenceFile =
+                evidenceService.downloadEvidence(
+                        evidenceId,
+                        jwt.getSubject()
+                );
+
+        ContentDisposition contentDisposition =
+                ContentDisposition
+                        .attachment()
+                        .filename(
+                                evidenceFile.originalFileName(),
+                                StandardCharsets.UTF_8
+                        )
+                        .build();
+
+        MediaType mediaType = MediaType.parseMediaType(
+                evidenceFile.contentType()
+        );
+
+        return ResponseEntity
+                .ok()
+                .contentType(mediaType)
+                .contentLength(
+                        evidenceFile.fileSizeBytes()
+                )
+                .header(
+                        HttpHeaders.CONTENT_DISPOSITION,
+                        contentDisposition.toString()
+                )
+                .body(evidenceFile.resource());
+    }
+
+    @DeleteMapping("/evidence/{evidenceId}")
+    public ResponseEntity<ApiResponse<Void>>
+            deleteEvidence(
+
+                    @PathVariable Long evidenceId,
+                    @AuthenticationPrincipal Jwt jwt
+            ) {
+
+        evidenceService.deleteEvidence(
+                evidenceId,
+                jwt.getSubject()
+        );
+
+        ApiResponse<Void> response =
+                ApiResponse.<Void>success(
+                        "Evidence deleted successfully",
+                        null
+                );
+
+        return ResponseEntity.ok(response);
     }
 }

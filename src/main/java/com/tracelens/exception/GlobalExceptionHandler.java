@@ -307,6 +307,26 @@ public class GlobalExceptionHandler {
                 .status(HttpStatus.NOT_FOUND)
                 .body(errorResponse);
     }
+    
+    @ExceptionHandler(EvidenceNotFoundException.class)
+    public ResponseEntity<ErrorResponse>
+            handleEvidenceNotFoundException(
+
+                    EvidenceNotFoundException exception,
+                    HttpServletRequest request
+            ) {
+
+        ErrorResponse errorResponse = createErrorResponse(
+                HttpStatus.NOT_FOUND,
+                exception.getMessage(),
+                request,
+                Map.of()
+        );
+
+        return ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
+                .body(errorResponse);
+    }
 
     @ExceptionHandler(
             DataIntegrityViolationException.class
