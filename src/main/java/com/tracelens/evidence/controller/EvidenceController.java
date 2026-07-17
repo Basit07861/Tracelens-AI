@@ -21,6 +21,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.tracelens.common.ApiResponse;
 import com.tracelens.common.PageResponse;
+import com.tracelens.evidence.dto.EvidenceIntegrityResponse;
 import com.tracelens.evidence.dto.EvidenceResponse;
 import com.tracelens.evidence.service.EvidenceService;
 import com.tracelens.evidence.storage.EvidenceFileResource;
@@ -173,6 +174,36 @@ public class EvidenceController {
                         contentDisposition.toString()
                 )
                 .body(evidenceFile.resource());
+    }
+
+    @PostMapping(
+            "/evidence/{evidenceId}/verify-integrity"
+    )
+    public ResponseEntity<
+            ApiResponse<EvidenceIntegrityResponse>>
+            verifyEvidenceIntegrity(
+
+                    @PathVariable Long evidenceId,
+                    @AuthenticationPrincipal Jwt jwt
+            ) {
+
+        EvidenceIntegrityResponse verification =
+                evidenceService.verifyEvidenceIntegrity(
+                        evidenceId,
+                        jwt.getSubject()
+                );
+
+        String message = verification.matches()
+                ? "Evidence integrity verified successfully"
+                : "Evidence integrity mismatch detected";
+
+        ApiResponse<EvidenceIntegrityResponse> response =
+                ApiResponse.success(
+                        message,
+                        verification
+                );
+
+        return ResponseEntity.ok(response);
     }
 
     @DeleteMapping("/evidence/{evidenceId}")

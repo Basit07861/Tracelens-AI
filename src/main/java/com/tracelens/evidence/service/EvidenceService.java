@@ -14,6 +14,7 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 import org.springframework.web.multipart.MultipartFile;
 
 import com.tracelens.common.PageResponse;
+import com.tracelens.evidence.dto.EvidenceIntegrityResponse;
 import com.tracelens.evidence.dto.EvidenceResponse;
 import com.tracelens.evidence.entity.Evidence;
 import com.tracelens.evidence.entity.EvidenceFileType;
@@ -176,7 +177,6 @@ public class EvidenceService {
     @Transactional(readOnly = true)
     public PageResponse<EvidenceResponse>
             getEvidenceForCase(
-
                     Long caseId,
                     String authenticatedEmail,
                     int page,
@@ -253,6 +253,75 @@ public class EvidenceService {
                 evidence.getOriginalFileName(),
                 evidence.getContentType(),
                 evidence.getFileSizeBytes()
+        );
+    }
+
+    @Transactional
+    public EvidenceIntegrityResponse verifyEvidenceIntegrity(
+            Long evidenceId,
+            String authenticatedEmail
+    ) {
+
+        Evidence evidence = findOwnedEvidence(
+                evidenceId,
+                authenticatedEmail
+        );
+
+        String expectedSha256Hash =
+                evidence.getSha256Hash();
+
+        if (expectedSha256Hash == null
+                || expectedSha256Hash.isBlank()) {
+
+            throw new InvalidRequestException(
+                    "Evidence does not have an original "
+                    + "SHA-256 hash available for verification"
+            );
+        }
+
+        String currentSha256Hash =
+                storageService.calculateSha256(
+                        evidence.getStorageRelativePath()
+                );
+
+        boolean matches =
+                expectedSha256Hash.equals(
+                        currentSha256Hash
+                );
+
+        EvidenceIntegrityStatus integrityStatus =
+                matches
+                        ? EvidenceIntegrityStatus.VERIFIED
+                        : EvidenceIntegrityStatus.MISMATCH;
+
+        Instant verifiedAt = Instant.now();
+
+        evidence.setIntegrityStatus(
+                integrityStatus
+        );
+
+        evidence.setLastIntegrityVerifiedAt(
+                verifiedAt
+        );
+
+        Evidence verifiedEvidence =
+                evidenceRepository.saveAndFlush(
+                        evidence
+                );
+
+        InvestigationCase investigationCase =
+                verifiedEvidence.getInvestigationCase();
+
+        return new EvidenceIntegrityResponse(
+                verifiedEvidence.getId(),
+                investigationCase.getId(),
+                investigationCase.getCaseNumber(),
+                verifiedEvidence.getOriginalFileName(),
+                expectedSha256Hash,
+                currentSha256Hash,
+                matches,
+                integrityStatus,
+                verifiedAt
         );
     }
 
