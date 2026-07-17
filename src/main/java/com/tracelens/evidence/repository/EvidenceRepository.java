@@ -11,7 +11,20 @@ import com.tracelens.evidence.entity.Evidence;
 public interface EvidenceRepository
         extends JpaRepository<Evidence, Long> {
 
-    boolean existsByStoredFileName(String storedFileName);
+    boolean existsByStoredFileName(
+            String storedFileName
+    );
+
+    boolean existsByInvestigationCaseIdAndSha256Hash(
+            Long caseId,
+            String sha256Hash
+    );
+
+    Optional<Evidence>
+            findByInvestigationCaseIdAndSha256Hash(
+                    Long caseId,
+                    String sha256Hash
+            );
 
     Optional<Evidence>
             findByIdAndInvestigationCaseOwnerEmailIgnoreCase(

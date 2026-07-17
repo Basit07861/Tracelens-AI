@@ -28,6 +28,13 @@ import jakarta.persistence.UniqueConstraint;
                 @UniqueConstraint(
                         name = "uk_evidence_files_stored_file_name",
                         columnNames = "stored_file_name"
+                ),
+                @UniqueConstraint(
+                        name = "uk_evidence_files_case_sha256",
+                        columnNames = {
+                                "case_id",
+                                "sha256_hash"
+                        }
                 )
         },
         indexes = {
@@ -42,6 +49,14 @@ import jakarta.persistence.UniqueConstraint;
                 @Index(
                         name = "idx_evidence_files_uploaded_at",
                         columnList = "uploaded_at"
+                ),
+                @Index(
+                        name = "idx_evidence_files_sha256",
+                        columnList = "sha256_hash"
+                ),
+                @Index(
+                        name = "idx_evidence_files_integrity_status",
+                        columnList = "integrity_status"
                 )
         }
 )
@@ -93,9 +108,7 @@ public class Evidence {
     )
     private long fileSizeBytes;
 
-    @Column(
-            length = 500
-    )
+    @Column(length = 500)
     private String description;
 
     @Enumerated(EnumType.STRING)
@@ -104,6 +117,37 @@ public class Evidence {
             length = 30
     )
     private EvidenceStatus status;
+
+    /*
+     * SHA-256 represented as lowercase hexadecimal text.
+     *
+     * SHA-256 produces 32 bytes:
+     * 32 bytes × 2 hexadecimal characters = 64 characters.
+     *
+     * Nullable for safe migration of evidence uploaded before
+     * the integrity feature was introduced.
+     */
+    @Column(
+            name = "sha256_hash",
+            length = 64
+    )
+    private String sha256Hash;
+
+    /*
+     * Nullable for existing development records.
+     * New evidence will receive a value during upload.
+     */
+    @Enumerated(EnumType.STRING)
+    @Column(
+            name = "integrity_status",
+            length = 30
+    )
+    private EvidenceIntegrityStatus integrityStatus;
+
+    @Column(
+            name = "last_integrity_verified_at"
+    )
+    private Instant lastIntegrityVerifiedAt;
 
     @ManyToOne(
             fetch = FetchType.LAZY,
@@ -143,6 +187,11 @@ public class Evidence {
             this.status = EvidenceStatus.UPLOADED;
         }
 
+        if (this.integrityStatus == null) {
+            this.integrityStatus =
+                    EvidenceIntegrityStatus.NOT_VERIFIED;
+        }
+
         this.uploadedAt = currentTime;
         this.updatedAt = currentTime;
     }
@@ -164,7 +213,9 @@ public class Evidence {
         return originalFileName;
     }
 
-    public void setOriginalFileName(String originalFileName) {
+    public void setOriginalFileName(
+            String originalFileName
+    ) {
         this.originalFileName = originalFileName;
     }
 
@@ -172,7 +223,9 @@ public class Evidence {
         return storedFileName;
     }
 
-    public void setStoredFileName(String storedFileName) {
+    public void setStoredFileName(
+            String storedFileName
+    ) {
         this.storedFileName = storedFileName;
     }
 
@@ -180,7 +233,9 @@ public class Evidence {
         return storageRelativePath;
     }
 
-    public void setStorageRelativePath(String storageRelativePath) {
+    public void setStorageRelativePath(
+            String storageRelativePath
+    ) {
         this.storageRelativePath = storageRelativePath;
     }
 
@@ -188,7 +243,9 @@ public class Evidence {
         return fileType;
     }
 
-    public void setFileType(EvidenceFileType fileType) {
+    public void setFileType(
+            EvidenceFileType fileType
+    ) {
         this.fileType = fileType;
     }
 
@@ -196,7 +253,9 @@ public class Evidence {
         return contentType;
     }
 
-    public void setContentType(String contentType) {
+    public void setContentType(
+            String contentType
+    ) {
         this.contentType = contentType;
     }
 
@@ -204,7 +263,9 @@ public class Evidence {
         return fileSizeBytes;
     }
 
-    public void setFileSizeBytes(long fileSizeBytes) {
+    public void setFileSizeBytes(
+            long fileSizeBytes
+    ) {
         this.fileSizeBytes = fileSizeBytes;
     }
 
@@ -212,7 +273,9 @@ public class Evidence {
         return description;
     }
 
-    public void setDescription(String description) {
+    public void setDescription(
+            String description
+    ) {
         this.description = description;
     }
 
@@ -220,8 +283,41 @@ public class Evidence {
         return status;
     }
 
-    public void setStatus(EvidenceStatus status) {
+    public void setStatus(
+            EvidenceStatus status
+    ) {
         this.status = status;
+    }
+
+    public String getSha256Hash() {
+        return sha256Hash;
+    }
+
+    public void setSha256Hash(
+            String sha256Hash
+    ) {
+        this.sha256Hash = sha256Hash;
+    }
+
+    public EvidenceIntegrityStatus getIntegrityStatus() {
+        return integrityStatus;
+    }
+
+    public void setIntegrityStatus(
+            EvidenceIntegrityStatus integrityStatus
+    ) {
+        this.integrityStatus = integrityStatus;
+    }
+
+    public Instant getLastIntegrityVerifiedAt() {
+        return lastIntegrityVerifiedAt;
+    }
+
+    public void setLastIntegrityVerifiedAt(
+            Instant lastIntegrityVerifiedAt
+    ) {
+        this.lastIntegrityVerifiedAt =
+                lastIntegrityVerifiedAt;
     }
 
     public InvestigationCase getInvestigationCase() {
