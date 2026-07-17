@@ -54,15 +54,13 @@ public class GlobalExceptionHandler {
             );
         }
 
-        ErrorResponse errorResponse = new ErrorResponse(
-                false,
-                HttpStatus.BAD_REQUEST.value(),
-                HttpStatus.BAD_REQUEST.getReasonPhrase(),
-                "Request validation failed",
-                request.getRequestURI(),
-                fieldErrors,
-                Instant.now()
-        );
+        ErrorResponse errorResponse =
+                createErrorResponse(
+                        HttpStatus.BAD_REQUEST,
+                        "Request validation failed",
+                        request,
+                        fieldErrors
+                );
 
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
@@ -77,13 +75,14 @@ public class GlobalExceptionHandler {
                     HttpServletRequest request
             ) {
 
-        ErrorResponse errorResponse = createErrorResponse(
-                HttpStatus.BAD_REQUEST,
-                "Request body is malformed or contains "
-                + "unsupported values",
-                request,
-                Map.of()
-        );
+        ErrorResponse errorResponse =
+                createErrorResponse(
+                        HttpStatus.BAD_REQUEST,
+                        "Request body is malformed or contains "
+                        + "unsupported values",
+                        request,
+                        Map.of()
+                );
 
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
@@ -100,14 +99,15 @@ public class GlobalExceptionHandler {
                     HttpServletRequest request
             ) {
 
-        ErrorResponse errorResponse = createErrorResponse(
-                HttpStatus.BAD_REQUEST,
-                "Invalid value for request parameter '"
-                + exception.getName()
-                + "'",
-                request,
-                Map.of()
-        );
+        ErrorResponse errorResponse =
+                createErrorResponse(
+                        HttpStatus.BAD_REQUEST,
+                        "Invalid value for request parameter '"
+                        + exception.getName()
+                        + "'",
+                        request,
+                        Map.of()
+                );
 
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
@@ -122,12 +122,13 @@ public class GlobalExceptionHandler {
                     HttpServletRequest request
             ) {
 
-        ErrorResponse errorResponse = createErrorResponse(
-                HttpStatus.BAD_REQUEST,
-                exception.getMessage(),
-                request,
-                Map.of()
-        );
+        ErrorResponse errorResponse =
+                createErrorResponse(
+                        HttpStatus.BAD_REQUEST,
+                        exception.getMessage(),
+                        request,
+                        Map.of()
+                );
 
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
@@ -142,21 +143,20 @@ public class GlobalExceptionHandler {
                     HttpServletRequest request
             ) {
 
-        ErrorResponse errorResponse = createErrorResponse(
-                HttpStatus.BAD_REQUEST,
-                exception.getMessage(),
-                request,
-                Map.of()
-        );
+        ErrorResponse errorResponse =
+                createErrorResponse(
+                        HttpStatus.BAD_REQUEST,
+                        exception.getMessage(),
+                        request,
+                        Map.of()
+                );
 
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
                 .body(errorResponse);
     }
 
-    @ExceptionHandler(
-            MaxUploadSizeExceededException.class
-    )
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
     public ResponseEntity<ErrorResponse>
             handleMaximumUploadSizeExceeded(
 
@@ -164,12 +164,13 @@ public class GlobalExceptionHandler {
                     HttpServletRequest request
             ) {
 
-        ErrorResponse errorResponse = createErrorResponse(
-                HttpStatus.CONTENT_TOO_LARGE,
-                "Evidence file cannot exceed 10 MB",
-                request,
-                Map.of()
-        );
+        ErrorResponse errorResponse =
+                createErrorResponse(
+                        HttpStatus.CONTENT_TOO_LARGE,
+                        "Evidence file cannot exceed 10 MB",
+                        request,
+                        Map.of()
+                );
 
         return ResponseEntity
                 .status(HttpStatus.CONTENT_TOO_LARGE)
@@ -190,18 +191,17 @@ public class GlobalExceptionHandler {
                 exception
         );
 
-        ErrorResponse errorResponse = createErrorResponse(
-                HttpStatus.INTERNAL_SERVER_ERROR,
-                "The evidence file could not be stored. "
-                + "Please try again.",
-                request,
-                Map.of()
-        );
+        ErrorResponse errorResponse =
+                createErrorResponse(
+                        HttpStatus.INTERNAL_SERVER_ERROR,
+                        "The evidence file could not be stored. "
+                        + "Please try again.",
+                        request,
+                        Map.of()
+                );
 
         return ResponseEntity
-                .status(
-                        HttpStatus.INTERNAL_SERVER_ERROR
-                )
+                .status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(errorResponse);
     }
 
@@ -213,12 +213,34 @@ public class GlobalExceptionHandler {
                     HttpServletRequest request
             ) {
 
-        ErrorResponse errorResponse = createErrorResponse(
-                HttpStatus.CONFLICT,
-                exception.getMessage(),
-                request,
-                Map.of()
-        );
+        ErrorResponse errorResponse =
+                createErrorResponse(
+                        HttpStatus.CONFLICT,
+                        exception.getMessage(),
+                        request,
+                        Map.of()
+                );
+
+        return ResponseEntity
+                .status(HttpStatus.CONFLICT)
+                .body(errorResponse);
+    }
+
+    @ExceptionHandler(DuplicateEvidenceException.class)
+    public ResponseEntity<ErrorResponse>
+            handleDuplicateEvidenceException(
+
+                    DuplicateEvidenceException exception,
+                    HttpServletRequest request
+            ) {
+
+        ErrorResponse errorResponse =
+                createErrorResponse(
+                        HttpStatus.CONFLICT,
+                        exception.getMessage(),
+                        request,
+                        Map.of()
+                );
 
         return ResponseEntity
                 .status(HttpStatus.CONFLICT)
@@ -236,12 +258,13 @@ public class GlobalExceptionHandler {
                     HttpServletRequest request
             ) {
 
-        ErrorResponse errorResponse = createErrorResponse(
-                HttpStatus.UNAUTHORIZED,
-                "Invalid email address or password",
-                request,
-                Map.of()
-        );
+        ErrorResponse errorResponse =
+                createErrorResponse(
+                        HttpStatus.UNAUTHORIZED,
+                        "Invalid email address or password",
+                        request,
+                        Map.of()
+                );
 
         return ResponseEntity
                 .status(HttpStatus.UNAUTHORIZED)
@@ -256,12 +279,13 @@ public class GlobalExceptionHandler {
                     HttpServletRequest request
             ) {
 
-        ErrorResponse errorResponse = createErrorResponse(
-                HttpStatus.FORBIDDEN,
-                "This user account is disabled",
-                request,
-                Map.of()
-        );
+        ErrorResponse errorResponse =
+                createErrorResponse(
+                        HttpStatus.FORBIDDEN,
+                        "This user account is disabled",
+                        request,
+                        Map.of()
+                );
 
         return ResponseEntity
                 .status(HttpStatus.FORBIDDEN)
@@ -276,12 +300,13 @@ public class GlobalExceptionHandler {
                     HttpServletRequest request
             ) {
 
-        ErrorResponse errorResponse = createErrorResponse(
-                HttpStatus.NOT_FOUND,
-                exception.getMessage(),
-                request,
-                Map.of()
-        );
+        ErrorResponse errorResponse =
+                createErrorResponse(
+                        HttpStatus.NOT_FOUND,
+                        exception.getMessage(),
+                        request,
+                        Map.of()
+                );
 
         return ResponseEntity
                 .status(HttpStatus.NOT_FOUND)
@@ -296,18 +321,19 @@ public class GlobalExceptionHandler {
                     HttpServletRequest request
             ) {
 
-        ErrorResponse errorResponse = createErrorResponse(
-                HttpStatus.NOT_FOUND,
-                exception.getMessage(),
-                request,
-                Map.of()
-        );
+        ErrorResponse errorResponse =
+                createErrorResponse(
+                        HttpStatus.NOT_FOUND,
+                        exception.getMessage(),
+                        request,
+                        Map.of()
+                );
 
         return ResponseEntity
                 .status(HttpStatus.NOT_FOUND)
                 .body(errorResponse);
     }
-    
+
     @ExceptionHandler(EvidenceNotFoundException.class)
     public ResponseEntity<ErrorResponse>
             handleEvidenceNotFoundException(
@@ -316,21 +342,20 @@ public class GlobalExceptionHandler {
                     HttpServletRequest request
             ) {
 
-        ErrorResponse errorResponse = createErrorResponse(
-                HttpStatus.NOT_FOUND,
-                exception.getMessage(),
-                request,
-                Map.of()
-        );
+        ErrorResponse errorResponse =
+                createErrorResponse(
+                        HttpStatus.NOT_FOUND,
+                        exception.getMessage(),
+                        request,
+                        Map.of()
+                );
 
         return ResponseEntity
                 .status(HttpStatus.NOT_FOUND)
                 .body(errorResponse);
     }
 
-    @ExceptionHandler(
-            DataIntegrityViolationException.class
-    )
+    @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<ErrorResponse>
             handleDataIntegrityViolation(
 
@@ -345,13 +370,14 @@ public class GlobalExceptionHandler {
                 exception
         );
 
-        ErrorResponse errorResponse = createErrorResponse(
-                HttpStatus.CONFLICT,
-                "The submitted information conflicts "
-                + "with existing data",
-                request,
-                Map.of()
-        );
+        ErrorResponse errorResponse =
+                createErrorResponse(
+                        HttpStatus.CONFLICT,
+                        "The submitted information conflicts "
+                        + "with existing data",
+                        request,
+                        Map.of()
+                );
 
         return ResponseEntity
                 .status(HttpStatus.CONFLICT)
@@ -372,18 +398,17 @@ public class GlobalExceptionHandler {
                 exception
         );
 
-        ErrorResponse errorResponse = createErrorResponse(
-                HttpStatus.INTERNAL_SERVER_ERROR,
-                "An unexpected error occurred. "
-                + "Please try again.",
-                request,
-                Map.of()
-        );
+        ErrorResponse errorResponse =
+                createErrorResponse(
+                        HttpStatus.INTERNAL_SERVER_ERROR,
+                        "An unexpected error occurred. "
+                        + "Please try again.",
+                        request,
+                        Map.of()
+                );
 
         return ResponseEntity
-                .status(
-                        HttpStatus.INTERNAL_SERVER_ERROR
-                )
+                .status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(errorResponse);
     }
 

@@ -8,6 +8,9 @@ import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.HexFormat;
 import java.util.Locale;
 import java.util.UUID;
 
@@ -33,6 +36,11 @@ public class EvidenceStorageService {
             );
 
     private static final int STORAGE_ATTEMPTS = 5;
+
+    private static final int HASH_BUFFER_SIZE = 8192;
+
+    private static final String SHA_256_ALGORITHM =
+            "SHA-256";
 
     private final Path storageRoot;
 
@@ -119,7 +127,28 @@ public class EvidenceStorageService {
                             file.getInputStream()
             ) {
 
-                Files.copy(inputStream, targetPath);
+                long copiedBytes = Files.copy(
+                        inputStream,
+                        targetPath
+                );
+
+                long storedFileSize =
+                        Files.size(targetPath);
+
+                if (copiedBytes != storedFileSize
+                        || storedFileSize
+                        != file.getSize()) {
+
+                    deletePathQuietly(targetPath);
+
+                    throw new EvidenceStorageException(
+                            "Stored evidence size does not "
+                            + "match the uploaded file"
+                    );
+                }
+
+                String sha256Hash =
+                        calculateSha256(targetPath);
 
                 String relativePath = storageRoot
                         .relativize(targetPath)
@@ -131,7 +160,9 @@ public class EvidenceStorageService {
 
                 return new StoredEvidenceFile(
                         storedFileName,
-                        relativePath
+                        relativePath,
+                        storedFileSize,
+                        sha256Hash
                 );
             }
             catch (FileAlreadyExistsException exception) {
@@ -146,11 +177,29 @@ public class EvidenceStorageService {
                         exception
                 );
             }
+            catch (RuntimeException exception) {
+
+                deletePathQuietly(targetPath);
+
+                throw exception;
+            }
         }
 
         throw new EvidenceStorageException(
                 "Unable to generate a unique stored filename"
         );
+    }
+
+    public String calculateSha256(
+            String relativePath
+    ) {
+
+        Path targetPath =
+                resolveRelativePath(relativePath);
+
+        verifyReadableFile(targetPath);
+
+        return calculateSha256(targetPath);
     }
 
     public Resource loadAsResource(
@@ -160,14 +209,7 @@ public class EvidenceStorageService {
         Path targetPath =
                 resolveRelativePath(relativePath);
 
-        if (!Files.exists(targetPath)
-                || !Files.isRegularFile(targetPath)
-                || !Files.isReadable(targetPath)) {
-
-            throw new EvidenceStorageException(
-                    "The stored evidence file is unavailable"
-            );
-        }
+        verifyReadableFile(targetPath);
 
         try {
             Resource resource =
@@ -226,6 +268,79 @@ public class EvidenceStorageService {
                     "Unable to remove stored evidence file: {}",
                     relativePath,
                     exception
+            );
+        }
+    }
+
+    private String calculateSha256(
+            Path targetPath
+    ) {
+
+        MessageDigest messageDigest =
+                createSha256Digest();
+
+        byte[] buffer =
+                new byte[HASH_BUFFER_SIZE];
+
+        try (
+                InputStream inputStream =
+                        Files.newInputStream(targetPath)
+        ) {
+
+            int bytesRead;
+
+            while (
+                    (bytesRead = inputStream.read(buffer))
+                    != -1
+            ) {
+
+                messageDigest.update(
+                        buffer,
+                        0,
+                        bytesRead
+                );
+            }
+
+            byte[] digest =
+                    messageDigest.digest();
+
+            return HexFormat
+                    .of()
+                    .formatHex(digest);
+        }
+        catch (IOException exception) {
+            throw new EvidenceStorageException(
+                    "Unable to calculate evidence SHA-256 hash",
+                    exception
+            );
+        }
+    }
+
+    private MessageDigest createSha256Digest() {
+
+        try {
+            return MessageDigest.getInstance(
+                    SHA_256_ALGORITHM
+            );
+        }
+        catch (NoSuchAlgorithmException exception) {
+            throw new EvidenceStorageException(
+                    "SHA-256 hashing is unavailable",
+                    exception
+            );
+        }
+    }
+
+    private void verifyReadableFile(
+            Path targetPath
+    ) {
+
+        if (!Files.exists(targetPath)
+                || !Files.isRegularFile(targetPath)
+                || !Files.isReadable(targetPath)) {
+
+            throw new EvidenceStorageException(
+                    "The stored evidence file is unavailable"
             );
         }
     }

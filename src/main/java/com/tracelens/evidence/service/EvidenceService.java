@@ -1,5 +1,6 @@
 package com.tracelens.evidence.service;
 
+import java.time.Instant;
 import java.util.Locale;
 
 import org.springframework.core.io.Resource;
@@ -16,12 +17,14 @@ import com.tracelens.common.PageResponse;
 import com.tracelens.evidence.dto.EvidenceResponse;
 import com.tracelens.evidence.entity.Evidence;
 import com.tracelens.evidence.entity.EvidenceFileType;
+import com.tracelens.evidence.entity.EvidenceIntegrityStatus;
 import com.tracelens.evidence.entity.EvidenceStatus;
 import com.tracelens.evidence.repository.EvidenceRepository;
 import com.tracelens.evidence.storage.EvidenceFileResource;
 import com.tracelens.evidence.storage.EvidenceStorageService;
 import com.tracelens.evidence.storage.StoredEvidenceFile;
 import com.tracelens.exception.CaseNotFoundException;
+import com.tracelens.exception.DuplicateEvidenceException;
 import com.tracelens.exception.EvidenceNotFoundException;
 import com.tracelens.exception.InvalidRequestException;
 import com.tracelens.investigation.entity.InvestigationCase;
@@ -89,6 +92,24 @@ public class EvidenceService {
                         fileType
                 );
 
+        if (
+                evidenceRepository
+                        .existsByInvestigationCaseIdAndSha256Hash(
+                                investigationCase.getId(),
+                                storedFile.sha256Hash()
+                        )
+        ) {
+
+            storageService.deleteQuietly(
+                    storedFile.relativePath()
+            );
+
+            throw new DuplicateEvidenceException(
+                    "This evidence file already exists "
+                    + "in the selected investigation case"
+            );
+        }
+
         try {
             Evidence evidence = new Evidence();
 
@@ -106,9 +127,30 @@ public class EvidenceService {
 
             evidence.setFileType(fileType);
             evidence.setContentType(contentType);
-            evidence.setFileSizeBytes(file.getSize());
-            evidence.setDescription(normalizedDescription);
-            evidence.setStatus(EvidenceStatus.UPLOADED);
+
+            evidence.setFileSizeBytes(
+                    storedFile.fileSizeBytes()
+            );
+
+            evidence.setDescription(
+                    normalizedDescription
+            );
+
+            evidence.setStatus(
+                    EvidenceStatus.UPLOADED
+            );
+
+            evidence.setSha256Hash(
+                    storedFile.sha256Hash()
+            );
+
+            evidence.setIntegrityStatus(
+                    EvidenceIntegrityStatus.VERIFIED
+            );
+
+            evidence.setLastIntegrityVerifiedAt(
+                    Instant.now()
+            );
 
             evidence.setInvestigationCase(
                     investigationCase
@@ -295,8 +337,10 @@ public class EvidenceService {
             String relativePath
     ) {
 
-        if (TransactionSynchronizationManager
-                .isSynchronizationActive()) {
+        if (
+                TransactionSynchronizationManager
+                        .isSynchronizationActive()
+        ) {
 
             TransactionSynchronizationManager
                     .registerSynchronization(
@@ -304,6 +348,7 @@ public class EvidenceService {
 
                                 @Override
                                 public void afterCommit() {
+
                                     storageService.deleteQuietly(
                                             relativePath
                                     );
@@ -343,6 +388,9 @@ public class EvidenceService {
                 evidence.getFileSizeBytes(),
                 evidence.getDescription(),
                 evidence.getStatus(),
+                evidence.getSha256Hash(),
+                evidence.getIntegrityStatus(),
+                evidence.getLastIntegrityVerifiedAt(),
                 evidence.getUploadedAt(),
                 evidence.getUpdatedAt()
         );
