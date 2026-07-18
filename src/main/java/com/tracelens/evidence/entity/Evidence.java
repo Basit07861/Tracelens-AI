@@ -57,6 +57,10 @@ import jakarta.persistence.UniqueConstraint;
                 @Index(
                         name = "idx_evidence_files_integrity_status",
                         columnList = "integrity_status"
+                ),
+                @Index(
+                        name = "idx_evidence_files_processed_at",
+                        columnList = "processed_at"
                 )
         }
 )
@@ -119,13 +123,8 @@ public class Evidence {
     private EvidenceStatus status;
 
     /*
-     * SHA-256 represented as lowercase hexadecimal text.
-     *
-     * SHA-256 produces 32 bytes:
-     * 32 bytes × 2 hexadecimal characters = 64 characters.
-     *
-     * Nullable for safe migration of evidence uploaded before
-     * the integrity feature was introduced.
+     * The original SHA-256 fingerprint generated from the
+     * persisted file bytes during upload.
      */
     @Column(
             name = "sha256_hash",
@@ -133,10 +132,6 @@ public class Evidence {
     )
     private String sha256Hash;
 
-    /*
-     * Nullable for existing development records.
-     * New evidence will receive a value during upload.
-     */
     @Enumerated(EnumType.STRING)
     @Column(
             name = "integrity_status",
@@ -148,6 +143,43 @@ public class Evidence {
             name = "last_integrity_verified_at"
     )
     private Instant lastIntegrityVerifiedAt;
+
+    /*
+     * MySQL LONGTEXT is used because extracted evidence may
+     * contain considerably more text than an ordinary VARCHAR.
+     *
+     * @Lob is deliberately not used because this application
+     * stores and searches text rather than binary large objects.
+     */
+    @Column(
+            name = "extracted_text",
+            columnDefinition = "LONGTEXT"
+    )
+    private String extractedText;
+
+    @Column(
+            name = "extracted_character_count"
+    )
+    private Integer extractedCharacterCount;
+
+    /*
+     * Stores only a safe, user-readable processing error.
+     * Stack traces and internal server paths must not be stored.
+     */
+    @Column(
+            name = "extraction_error",
+            length = 1000
+    )
+    private String extractionError;
+
+    /*
+     * Records when extraction completed, whether it succeeded
+     * or failed.
+     */
+    @Column(
+            name = "processed_at"
+    )
+    private Instant processedAt;
 
     @ManyToOne(
             fetch = FetchType.LAZY,
@@ -183,29 +215,77 @@ public class Evidence {
 
         Instant currentTime = Instant.now();
 
-        if (this.status == null) {
-            this.status = EvidenceStatus.UPLOADED;
+        if (status == null) {
+            status = EvidenceStatus.UPLOADED;
         }
 
-        if (this.integrityStatus == null) {
-            this.integrityStatus =
+        if (integrityStatus == null) {
+            integrityStatus =
                     EvidenceIntegrityStatus.NOT_VERIFIED;
         }
 
-        this.uploadedAt = currentTime;
-        this.updatedAt = currentTime;
+        uploadedAt = currentTime;
+        updatedAt = currentTime;
     }
 
     @PreUpdate
     public void beforeUpdate() {
-        this.updatedAt = Instant.now();
+        updatedAt = Instant.now();
+    }
+
+    /*
+     * Called immediately before text extraction starts.
+     */
+    public void markProcessing() {
+
+        status = EvidenceStatus.PROCESSING;
+
+        extractedText = null;
+        extractedCharacterCount = null;
+        extractionError = null;
+        processedAt = null;
+    }
+
+    /*
+     * Called after text extraction succeeds.
+     */
+    public void markProcessed(
+            String extractedText
+    ) {
+
+        this.extractedText = extractedText;
+
+        this.extractedCharacterCount =
+                extractedText == null
+                        ? 0
+                        : extractedText.length();
+
+        this.extractionError = null;
+        this.processedAt = Instant.now();
+        this.status = EvidenceStatus.PROCESSED;
+    }
+
+    /*
+     * Called when parsing or content extraction fails.
+     */
+    public void markExtractionFailed(
+            String safeErrorMessage
+    ) {
+
+        this.extractedText = null;
+        this.extractedCharacterCount = 0;
+        this.extractionError = safeErrorMessage;
+        this.processedAt = Instant.now();
+        this.status = EvidenceStatus.FAILED;
     }
 
     public Long getId() {
         return id;
     }
 
-    public void setId(Long id) {
+    public void setId(
+            Long id
+    ) {
         this.id = id;
     }
 
@@ -318,6 +398,47 @@ public class Evidence {
     ) {
         this.lastIntegrityVerifiedAt =
                 lastIntegrityVerifiedAt;
+    }
+
+    public String getExtractedText() {
+        return extractedText;
+    }
+
+    public void setExtractedText(
+            String extractedText
+    ) {
+        this.extractedText = extractedText;
+    }
+
+    public Integer getExtractedCharacterCount() {
+        return extractedCharacterCount;
+    }
+
+    public void setExtractedCharacterCount(
+            Integer extractedCharacterCount
+    ) {
+        this.extractedCharacterCount =
+                extractedCharacterCount;
+    }
+
+    public String getExtractionError() {
+        return extractionError;
+    }
+
+    public void setExtractionError(
+            String extractionError
+    ) {
+        this.extractionError = extractionError;
+    }
+
+    public Instant getProcessedAt() {
+        return processedAt;
+    }
+
+    public void setProcessedAt(
+            Instant processedAt
+    ) {
+        this.processedAt = processedAt;
     }
 
     public InvestigationCase getInvestigationCase() {
