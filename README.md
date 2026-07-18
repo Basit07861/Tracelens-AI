@@ -1,26 +1,27 @@
 # TraceLens AI
 
-TraceLens AI is an AI-powered digital evidence analysis and investigation platform built with Spring Boot.
+TraceLens AI is an AI-powered digital evidence analysis and investigation platform built using Spring Boot.
 
-It helps authorised investigators:
+The application enables authorised investigators to:
 
 - Register and authenticate securely
 - Create and manage investigation cases
 - Upload and organise digital evidence
-- Preserve evidence metadata
 - Generate SHA-256 evidence fingerprints
 - Detect duplicate evidence
 - Verify whether stored evidence has been altered
-- Search and filter investigation cases
-- Download and securely delete stored evidence
+- Extract readable content from TXT, CSV, JSON and PDF files
+- Preserve evidence-processing metadata
+- Search, filter and manage investigation cases
+- Download and securely delete evidence files
 
-Evidence text extraction and AI-powered analysis will be added in the upcoming development phases.
+The extracted evidence text will be used for AI-powered investigation analysis in the next development phase.
 
 ---
 
-## Current Development Status
+# Current Development Status
 
-### Day 1 — Backend Foundation
+## Day 1 — Backend Foundation
 
 - Initialised the Spring Boot Maven project
 - Configured MySQL, Spring Data JPA and Hibernate
@@ -31,12 +32,12 @@ Evidence text extraction and AI-powered analysis will be added in the upcoming d
 - Added global REST exception handling
 - Connected and published the project to GitHub
 
-### Day 2 — Authentication and Security
+## Day 2 — Authentication and Security
 
 - Created the `User` JPA entity and `Role` enum
 - Added a Spring Data JPA user repository
 - Implemented secure user registration
-- Added field-level request validation
+- Added request validation
 - Normalised email addresses and user names
 - Implemented BCrypt password hashing
 - Assigned the default `INVESTIGATOR` role
@@ -48,7 +49,7 @@ Evidence text extraction and AI-powered analysis will be added in the upcoming d
 - Added a protected current-user endpoint
 - Added handling for invalid credentials and disabled accounts
 
-### Day 3 — Investigation Case Management
+## Day 3 — Investigation Case Management
 
 - Created the `InvestigationCase` JPA entity
 - Added case status and priority enums
@@ -65,10 +66,9 @@ Evidence text extraction and AI-powered analysis will be added in the upcoming d
 - Added pagination and sorting
 - Restricted sorting to approved fields
 - Added reusable paginated API responses
-- Added validation for invalid pagination and sorting values
-- Added safe handling for unsupported enum values
+- Added safe handling for invalid pagination, sorting and enum values
 
-### Day 4 — Digital Evidence Management
+## Day 4 — Digital Evidence Management
 
 - Created the `Evidence` JPA entity
 - Added supported evidence file-type and processing-status enums
@@ -82,46 +82,77 @@ Evidence text extraction and AI-powered analysis will be added in the upcoming d
 - Generated UUID-based physical filenames
 - Stored evidence inside case-specific directories
 - Prevented path-traversal access
-- Stored portable relative paths instead of machine-specific paths
-- Removed uploaded files when database persistence failed
+- Stored portable relative paths
+- Removed physical files when database persistence failed
 - Added paginated evidence listing
 - Added evidence metadata retrieval
-- Added authenticated physical-file download
+- Added authenticated file download
 - Preserved original filenames during downloads
 - Enforced evidence ownership through case ownership
 - Added transactional evidence deletion
-- Removed physical files after successful database commits
+- Removed physical files only after successful database commits
 - Removed empty case evidence directories
 - Added evidence-specific exception handling
 
-### Day 5 — Evidence Integrity and Duplicate Detection
+## Day 5 — Evidence Integrity and Duplicate Detection
 
 - Added SHA-256 hashing for uploaded evidence
 - Calculated hashes from the bytes stored on disk
 - Stored SHA-256 values as 64-character lowercase hexadecimal strings
-- Verified that uploaded and stored file sizes match
+- Verified uploaded and persisted file sizes
 - Added evidence-integrity status tracking
 - Added last integrity-verification timestamps
 - Added database indexes for SHA-256 and integrity status
 - Added per-case evidence-hash uniqueness
-- Prevented the same evidence from being uploaded twice to one case
-- Removed rejected duplicate candidate files from physical storage
-- Allowed identical evidence to be associated with different cases
+- Prevented duplicate evidence inside the same case
+- Removed rejected duplicate candidate files
+- Allowed identical evidence across separate cases
 - Added SHA-256 metadata to evidence API responses
-- Added authenticated integrity-verification API
-- Recalculated hashes from current stored evidence bytes
-- Compared current hashes with immutable original upload hashes
+- Added an authenticated integrity-verification endpoint
+- Recalculated hashes from current stored file bytes
+- Compared current hashes with immutable upload hashes
 - Recorded `VERIFIED` when evidence remained unchanged
-- Recorded `MISMATCH` when stored evidence was modified
-- Preserved original hashes as integrity baselines
-- Tested deliberate evidence modification and restoration
+- Recorded `MISMATCH` when evidence was modified
+- Tested deliberate modification and restoration
 - Enforced ownership during integrity verification
+
+## Day 6 — Evidence Text Extraction
+
+- Added extracted-text persistence to evidence records
+- Added extracted character-count metadata
+- Added safe extraction-error storage
+- Added processing-completion timestamps
+- Added configurable extraction safety limits
+- Implemented evidence processing status transitions
+- Added a common `EvidenceTextExtractor` interface
+- Implemented the Strategy design pattern
+- Added an extractor registry
+- Added strict UTF-8 text decoding
+- Added shared text-normalisation utilities
+- Implemented TXT evidence extraction
+- Implemented CSV parsing with quoted-field support
+- Implemented JSON flattening using Jackson
+- Added Apache PDFBox
+- Implemented PDF text extraction
+- Extracted PDF content page by page
+- Added page headings to PDF output
+- Added PDF page limits
+- Rejected encrypted or restricted PDFs
+- Handled malformed and image-only PDFs safely
+- Verified evidence integrity before extraction
+- Added transactional `PROCESSING`, `PROCESSED` and `FAILED` state handling
+- Added evidence text-extraction API
+- Added extracted-text retrieval API
+- Returned `422` for unprocessable evidence content
+- Preserved failure metadata in separate transactions
+- Kept original files and SHA-256 values unchanged
+- Tested TXT, CSV, JSON and PDF processing
 
 ---
 
-## Technology Stack
+# Technology Stack
 
-### Backend
+## Backend
 
 - Java 17 compatible
 - Spring Boot 4.1.0
@@ -135,17 +166,21 @@ Evidence text extraction and AI-powered analysis will be added in the upcoming d
 - MySQL
 - Maven
 
-### Evidence and File Management
+## Evidence Processing
 
-- Spring multipart upload
+- Spring multipart file upload
 - Java NIO filesystem APIs
+- Java `MessageDigest`
+- SHA-256 evidence hashing
 - UUID-based stored filenames
 - Case-specific evidence directories
-- Secure relative-path handling
-- SHA-256 hashing using Java `MessageDigest`
-- Hexadecimal hash formatting using Java `HexFormat`
+- Strict UTF-8 text decoding
+- Jackson JSON processing
+- Apache PDFBox 3.0.8
+- Strategy design pattern
+- Transactional processing-state persistence
 
-### Development Tools
+## Development Tools
 
 - Eclipse / Spring Tools
 - MySQL Workbench
@@ -156,7 +191,7 @@ Evidence text extraction and AI-powered analysis will be added in the upcoming d
 
 ---
 
-## Project Structure
+# Project Structure
 
 ```text
 com.tracelens
@@ -177,10 +212,12 @@ com.tracelens
 │
 ├── evidence
 │   ├── config
+│   │   ├── EvidenceExtractionProperties.java
 │   │   └── EvidenceProperties.java
 │   ├── controller
 │   │   └── EvidenceController.java
 │   ├── dto
+│   │   ├── EvidenceExtractionResponse.java
 │   │   ├── EvidenceIntegrityResponse.java
 │   │   └── EvidenceResponse.java
 │   ├── entity
@@ -188,10 +225,21 @@ com.tracelens
 │   │   ├── EvidenceFileType.java
 │   │   ├── EvidenceIntegrityStatus.java
 │   │   └── EvidenceStatus.java
+│   ├── extraction
+│   │   ├── CsvEvidenceTextExtractor.java
+│   │   ├── EvidenceTextExtractor.java
+│   │   ├── EvidenceTextExtractorRegistry.java
+│   │   ├── JsonEvidenceTextExtractor.java
+│   │   ├── PdfEvidenceTextExtractor.java
+│   │   ├── TextExtractionSupport.java
+│   │   └── TxtEvidenceTextExtractor.java
 │   ├── repository
 │   │   └── EvidenceRepository.java
 │   ├── service
 │   │   ├── EvidenceFileValidator.java
+│   │   ├── EvidenceProcessingService.java
+│   │   ├── EvidenceProcessingStateService.java
+│   │   ├── EvidenceProcessingTarget.java
 │   │   └── EvidenceService.java
 │   └── storage
 │       ├── EvidenceFileResource.java
@@ -205,6 +253,7 @@ com.tracelens
 │   ├── ErrorResponse.java
 │   ├── EvidenceNotFoundException.java
 │   ├── EvidenceStorageException.java
+│   ├── EvidenceTextExtractionException.java
 │   ├── GlobalExceptionHandler.java
 │   ├── InvalidEvidenceFileException.java
 │   ├── InvalidRequestException.java
@@ -252,16 +301,16 @@ com.tracelens
 
 ---
 
-## Environment Variables
+# Environment Variables
 
-The application requires:
+Required variables:
 
 ```text
 DB_PASSWORD=your_mysql_password
 JWT_SECRET=your_base64_encoded_jwt_secret
 ```
 
-Optional environment variables:
+Optional variables:
 
 ```text
 DB_USERNAME=root
@@ -269,9 +318,18 @@ DB_URL=jdbc:mysql://localhost:3306/tracelens_db
 EVIDENCE_STORAGE_ROOT=evidence-storage
 ```
 
-Never commit real passwords, JWT secrets, API keys, access tokens or uploaded evidence.
+Never commit:
 
-### Eclipse Configuration
+```text
+Database passwords
+JWT secrets
+JWT access tokens
+AI API keys
+Uploaded evidence
+Temporary backup files
+```
+
+## Eclipse Configuration
 
 Open:
 
@@ -290,7 +348,7 @@ DB_PASSWORD
 JWT_SECRET
 ```
 
-`EVIDENCE_STORAGE_ROOT` is optional because the default value is:
+The evidence storage root is optional because the application defaults to:
 
 ```text
 evidence-storage
@@ -298,7 +356,46 @@ evidence-storage
 
 ---
 
-## Database Setup
+# Application Configuration
+
+```properties
+spring.application.name=tracelens-backend
+
+server.port=8080
+
+spring.datasource.url=${DB_URL:jdbc:mysql://localhost:3306/tracelens_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Kolkata}
+spring.datasource.username=${DB_USERNAME:root}
+spring.datasource.password=${DB_PASSWORD}
+
+spring.jpa.hibernate.ddl-auto=update
+spring.jpa.show-sql=true
+spring.jpa.properties.hibernate.format_sql=true
+spring.jpa.open-in-view=false
+
+app.security.jwt.secret=${JWT_SECRET}
+app.security.jwt.issuer=tracelens-backend
+app.security.jwt.access-token-expiration-minutes=60
+
+spring.servlet.multipart.enabled=true
+spring.servlet.multipart.max-file-size=10MB
+spring.servlet.multipart.max-request-size=11MB
+
+app.evidence.storage-root=${EVIDENCE_STORAGE_ROOT:evidence-storage}
+app.evidence.max-file-size-bytes=10485760
+
+app.evidence.extraction.max-characters=100000
+app.evidence.extraction.max-pdf-pages=100
+app.evidence.extraction.max-csv-rows=5000
+app.evidence.extraction.max-json-depth=50
+app.evidence.extraction.max-error-message-length=1000
+
+server.error.include-message=always
+server.error.include-binding-errors=always
+```
+
+---
+
+# Database Setup
 
 Create the database:
 
@@ -314,8 +411,6 @@ Select it:
 USE tracelens_db;
 ```
 
-Hibernate creates and updates the tables from the JPA entities.
-
 Current tables:
 
 ```text
@@ -324,20 +419,20 @@ investigation_cases
 evidence_files
 ```
 
-### `users`
+## `users`
 
 Stores:
 
 - User ID
 - Full name
-- Email
+- Email address
 - BCrypt password hash
 - Role
 - Active status
 - Creation timestamp
 - Update timestamp
 
-### `investigation_cases`
+## `investigation_cases`
 
 Stores:
 
@@ -351,7 +446,7 @@ Stores:
 - Creation timestamp
 - Update timestamp
 
-### `evidence_files`
+## `evidence_files`
 
 Stores:
 
@@ -367,24 +462,28 @@ Stores:
 - SHA-256 baseline hash
 - Integrity status
 - Last integrity-verification timestamp
+- Extracted text
+- Extracted character count
+- Safe extraction-error message
+- Processing-completion timestamp
 - Investigation case ID
 - Upload timestamp
 - Update timestamp
 
-Physical evidence bytes are stored on the filesystem, not inside MySQL.
+The physical evidence bytes are stored on the filesystem, not inside MySQL.
 
 ---
 
-## Entity Relationships
+# Entity Relationships
 
 ```text
 User
   │
-  │ one user owns many investigation cases
+  │ one user owns many cases
   ▼
 InvestigationCase
   │
-  │ one case contains many evidence files
+  │ one case contains many evidence records
   ▼
 Evidence
 ```
@@ -399,44 +498,18 @@ evidence_files.case_id
 → investigation_cases.id
 ```
 
-The project currently uses unidirectional entity relationships:
+The project uses unidirectional JPA relationships:
 
 ```text
 InvestigationCase → User
 Evidence → InvestigationCase
 ```
 
-Child records are queried through repositories instead of loading large collections from parent entities.
+Child records are queried through repositories instead of storing large collections inside parent entities.
 
 ---
 
-## Application Configuration
-
-Database and JWT configuration:
-
-```properties
-spring.datasource.username=${DB_USERNAME:root}
-spring.datasource.password=${DB_PASSWORD}
-
-app.security.jwt.secret=${JWT_SECRET}
-app.security.jwt.issuer=tracelens-backend
-app.security.jwt.access-token-expiration-minutes=60
-```
-
-Evidence upload configuration:
-
-```properties
-spring.servlet.multipart.enabled=true
-spring.servlet.multipart.max-file-size=10MB
-spring.servlet.multipart.max-request-size=11MB
-
-app.evidence.storage-root=${EVIDENCE_STORAGE_ROOT:evidence-storage}
-app.evidence.max-file-size-bytes=10485760
-```
-
----
-
-## Running the Application
+# Running the Application
 
 Run:
 
@@ -463,14 +536,14 @@ Started TracelensBackendApplication
 
 ---
 
-## Authentication Flow
+# Authentication Flow
 
 ```text
 Register user
 → Hash password with BCrypt
-→ Save user in MySQL
-→ Log in with email and password
-→ Generate signed JWT access token
+→ Store user in MySQL
+→ Log in using email and password
+→ Generate signed JWT
 → Send JWT in Authorization header
 → Access protected APIs
 ```
@@ -481,7 +554,7 @@ Protected requests require:
 Authorization: Bearer <access-token>
 ```
 
-Current JWT expiration:
+Current access-token expiration:
 
 ```text
 60 minutes
@@ -499,13 +572,13 @@ Current JWT expiration:
 GET /api/system/status
 ```
 
-Public endpoint used to verify the application and database connection.
+Public endpoint for checking application and database availability.
 
 ---
 
-## Authentication APIs
+# Authentication APIs
 
-### Register
+## Register
 
 ```http
 POST /api/auth/register
@@ -527,7 +600,7 @@ Successful result:
 201 Created
 ```
 
-### Login
+## Login
 
 ```http
 POST /api/auth/login
@@ -549,21 +622,21 @@ A successful response contains:
 - Expiration time
 - Safe user details
 
-### Current User
+## Current User
 
 ```http
 GET /api/auth/me
 ```
 
-Returns the authenticated user’s safe profile information.
+Returns the authenticated user’s safe profile details.
 
 ---
 
-## Investigation Case APIs
+# Investigation Case APIs
 
 All case APIs require authentication.
 
-### Create Case
+## Create Case
 
 ```http
 POST /api/cases
@@ -574,7 +647,7 @@ Example:
 ```json
 {
   "title": "Suspicious Invoice Investigation",
-  "description": "Investigate possible invoice manipulation and an unusual payment request.",
+  "description": "Investigate possible invoice manipulation.",
   "priority": "HIGH"
 }
 ```
@@ -583,11 +656,11 @@ The backend automatically:
 
 - Generates a unique case number
 - Assigns the authenticated user as owner
-- Sets status to `OPEN`
+- Sets the initial status to `OPEN`
 - Uses `MEDIUM` when priority is omitted
-- Adds timestamps
+- Adds lifecycle timestamps
 
-### List Cases
+## List and Search Cases
 
 ```http
 GET /api/cases
@@ -602,48 +675,7 @@ sortBy=createdAt
 sortDirection=desc
 ```
 
-### Retrieve Case
-
-```http
-GET /api/cases/{caseId}
-```
-
-### Update Case
-
-```http
-PUT /api/cases/{caseId}
-```
-
-### Update Case Status
-
-```http
-PATCH /api/cases/{caseId}/status
-```
-
-Example:
-
-```json
-{
-  "status": "IN_PROGRESS"
-}
-```
-
-Supported statuses:
-
-```text
-OPEN
-IN_PROGRESS
-COMPLETED
-ARCHIVED
-```
-
-### Delete Case
-
-```http
-DELETE /api/cases/{caseId}
-```
-
-### Search and Filter Cases
+Search examples:
 
 ```http
 GET /api/cases?keyword=invoice
@@ -663,32 +695,65 @@ Combined example:
 GET /api/cases?keyword=invoice&status=IN_PROGRESS&priority=HIGH&page=0&size=10&sortBy=createdAt&sortDirection=desc
 ```
 
+## Retrieve Case
+
+```http
+GET /api/cases/{caseId}
+```
+
+## Update Case
+
+```http
+PUT /api/cases/{caseId}
+```
+
+## Update Case Status
+
+```http
+PATCH /api/cases/{caseId}/status
+```
+
+Supported values:
+
+```text
+OPEN
+IN_PROGRESS
+COMPLETED
+ARCHIVED
+```
+
+## Delete Case
+
+```http
+DELETE /api/cases/{caseId}
+```
+
 ---
 
-## Evidence APIs
+# Evidence APIs
 
 All evidence APIs require authentication.
 
-### Upload Evidence
+## Upload Evidence
 
 ```http
 POST /api/cases/{caseId}/evidence
 ```
 
-Request type:
+Content type:
 
 ```text
 multipart/form-data
 ```
 
-Parts:
+Request parts:
 
 ```text
 file         Required
 description  Optional
 ```
 
-Supported file types:
+Supported formats:
 
 ```text
 PDF
@@ -707,55 +772,30 @@ curl.exe -i -X POST `
 -F "description=Invoice communication evidence"
 ```
 
-The backend:
+Upload workflow:
 
-1. Verifies case ownership
-2. Validates file extension, MIME type and size
-3. Generates a UUID filename
-4. Stores the file in a case-specific directory
-5. Verifies the stored byte count
-6. Calculates SHA-256 from stored bytes
-7. Checks for duplicates within the selected case
-8. Stores evidence metadata and integrity information
-
-Example response:
-
-```json
-{
-  "success": true,
-  "message": "Evidence uploaded successfully",
-  "data": {
-    "id": 2,
-    "caseId": 5,
-    "caseNumber": "TL-20260715-YV3SBJQ4",
-    "originalFileName": "invoice-evidence.txt",
-    "fileType": "TXT",
-    "contentType": "text/plain",
-    "fileSizeBytes": 213,
-    "description": "Invoice communication evidence",
-    "status": "UPLOADED",
-    "sha256Hash": "0bc385d9ab9817a5b281f183d31efdb90984abbfd8e75d94a5ae8c08f1b4aee8",
-    "integrityStatus": "VERIFIED",
-    "lastIntegrityVerifiedAt": "2026-07-17T12:03:20Z",
-    "uploadedAt": "2026-07-17T12:03:20Z",
-    "updatedAt": "2026-07-17T12:03:20Z"
-  }
-}
+```text
+Verify case ownership
+→ Validate extension, MIME type and size
+→ Generate UUID filename
+→ Store the physical file
+→ Verify persisted byte count
+→ Calculate SHA-256
+→ Check for duplicates inside the case
+→ Save metadata and integrity state
 ```
 
-Internal storage paths are never exposed.
+New uploads receive:
 
-### List Case Evidence
+```text
+status = UPLOADED
+integrityStatus = VERIFIED
+```
+
+## List Case Evidence
 
 ```http
 GET /api/cases/{caseId}/evidence
-```
-
-Pagination:
-
-```text
-page=0
-size=10
 ```
 
 Example:
@@ -764,15 +804,15 @@ Example:
 GET /api/cases/5/evidence?page=0&size=10
 ```
 
-### Retrieve Evidence Metadata
+## Retrieve Evidence Metadata
 
 ```http
 GET /api/evidence/{evidenceId}
 ```
 
-Returns safe metadata, SHA-256 information and integrity status.
+Returns safe evidence metadata without exposing internal filesystem paths.
 
-### Download Evidence
+## Download Evidence
 
 ```http
 GET /api/evidence/{evidenceId}/download
@@ -781,28 +821,28 @@ GET /api/evidence/{evidenceId}/download
 The endpoint:
 
 - Verifies authentication
-- Verifies ownership
+- Verifies evidence ownership
 - Loads the physical file
-- Preserves the original uploaded filename
+- Preserves the original filename
 - Returns the file as an attachment
 
-### Delete Evidence
+## Delete Evidence
 
 ```http
 DELETE /api/evidence/{evidenceId}
 ```
 
-Workflow:
+Deletion workflow:
 
 ```text
 Verify ownership
-→ Delete database metadata transactionally
+→ Delete database metadata
 → Commit database transaction
 → Delete physical file
 → Remove empty case directory
 ```
 
-### Verify Evidence Integrity
+## Verify Evidence Integrity
 
 ```http
 POST /api/evidence/{evidenceId}/verify-integrity
@@ -816,9 +856,9 @@ The endpoint:
 4. Compares it with the original baseline hash
 5. Records `VERIFIED` or `MISMATCH`
 6. Updates the verification timestamp
-7. Returns expected and current hashes
+7. Returns the expected and current hashes
 
-Example successful response:
+Example result:
 
 ```json
 {
@@ -827,175 +867,450 @@ Example successful response:
   "data": {
     "evidenceId": 2,
     "caseId": 5,
-    "caseNumber": "TL-20260715-YV3SBJQ4",
     "originalFileName": "invoice-evidence.txt",
-    "expectedSha256Hash": "0bc385d9ab9817a5b281f183d31efdb90984abbfd8e75d94a5ae8c08f1b4aee8",
-    "currentSha256Hash": "0bc385d9ab9817a5b281f183d31efdb90984abbfd8e75d94a5ae8c08f1b4aee8",
+    "expectedSha256Hash": "original-hash",
+    "currentSha256Hash": "original-hash",
     "matches": true,
     "integrityStatus": "VERIFIED",
-    "verifiedAt": "2026-07-17T13:00:00Z"
-  }
-}
-```
-
-Example mismatch response:
-
-```json
-{
-  "success": true,
-  "message": "Evidence integrity mismatch detected",
-  "data": {
-    "expectedSha256Hash": "original-hash",
-    "currentSha256Hash": "different-current-hash",
-    "matches": false,
-    "integrityStatus": "MISMATCH"
+    "verifiedAt": "2026-07-18T10:30:00Z"
   }
 }
 ```
 
 ---
 
-## SHA-256 Evidence Integrity
+# Evidence Text-Extraction APIs
 
-SHA-256 produces a 256-bit digest represented as:
+## Extract Evidence Text
+
+```http
+POST /api/evidence/{evidenceId}/extract-text
+```
+
+Processing workflow:
+
+```text
+Verify ownership
+→ Select extractor by file type
+→ Verify SHA-256 integrity
+→ Set status to PROCESSING
+→ Load the physical file
+→ Extract and normalise text
+→ Save extracted text
+→ Save character count
+→ Set status to PROCESSED
+```
+
+When extraction fails:
+
+```text
+PROCESSING
+→ Save safe error message
+→ Set status to FAILED
+→ Return 422 response
+```
+
+Example successful response:
+
+```json
+{
+  "success": true,
+  "message": "Evidence text extracted successfully",
+  "data": {
+    "evidenceId": 2,
+    "caseId": 5,
+    "caseNumber": "TL-20260718-ABCD1234",
+    "originalFileName": "invoice.txt",
+    "fileType": "TXT",
+    "status": "PROCESSED",
+    "extractedCharacterCount": 215,
+    "extractedText": "Extracted evidence content...",
+    "extractionError": null,
+    "processedAt": "2026-07-18T10:45:00Z",
+    "updatedAt": "2026-07-18T10:45:00Z"
+  }
+}
+```
+
+## Retrieve Extracted Text
+
+```http
+GET /api/evidence/{evidenceId}/extracted-text
+```
+
+Returns:
+
+- Evidence identity
+- File type
+- Processing status
+- Extracted character count
+- Extracted text
+- Safe failure message
+- Processing timestamp
+
+The normal evidence-listing endpoint does not include large extracted text.
+
+---
+
+# Extraction Architecture
+
+TraceLens uses the Strategy design pattern.
+
+```text
+EvidenceProcessingService
+          │
+          ▼
+EvidenceTextExtractorRegistry
+          │
+          ├── TXT  → TxtEvidenceTextExtractor
+          ├── CSV  → CsvEvidenceTextExtractor
+          ├── JSON → JsonEvidenceTextExtractor
+          └── PDF  → PdfEvidenceTextExtractor
+```
+
+Common interface:
+
+```java
+public interface EvidenceTextExtractor {
+
+    EvidenceFileType supportedFileType();
+
+    String extract(Resource resource);
+}
+```
+
+Adding another file format later requires a new extractor implementation rather than modifying one large service.
+
+---
+
+# TXT Extraction
+
+TXT evidence processing:
+
+```text
+Read bytes
+→ Strict UTF-8 decoding
+→ Remove optional UTF-8 BOM
+→ Reject malformed UTF-8
+→ Reject binary-looking content
+→ Normalise line endings
+→ Remove surrounding whitespace
+→ Enforce character limit
+```
+
+TXT files containing null bytes or excessive control characters are rejected.
+
+---
+
+# CSV Extraction
+
+CSV processing supports:
+
+- Header rows
+- Quoted fields
+- Commas inside quoted values
+- Escaped quotation marks
+- Empty field values
+- Consistent row validation
+- Duplicate-header detection
+- Blank-header detection
+- Configurable row limits
+
+Example input:
+
+```csv
+date,sender,description,amount
+2026-07-10,finance@example.com,"Invoice, urgent payment",80000
+```
+
+Example extracted output:
+
+```text
+CSV Headers:
+- date
+- sender
+- description
+- amount
+
+Row 1:
+date: 2026-07-10
+sender: finance@example.com
+description: Invoice, urgent payment
+amount: 80000
+```
+
+The implementation does not use a simple comma split because quoted CSV fields may contain commas.
+
+---
+
+# JSON Extraction
+
+JSON evidence is:
+
+1. Parsed using Jackson
+2. Validated for correct syntax
+3. Traversed recursively
+4. Flattened into searchable key paths
+5. Limited by configured nesting depth
+6. Limited by configured character count
+
+Example JSON:
+
+```json
+{
+  "transactionId": "TX-1042",
+  "amount": 80000,
+  "recipient": {
+    "name": "Unknown Vendor"
+  }
+}
+```
+
+Extracted output:
+
+```text
+transactionId: TX-1042
+amount: 80000
+recipient.name: Unknown Vendor
+```
+
+Array example:
+
+```text
+reviewFlags[0]: account changed
+reviewFlags[1]: urgent payment request
+```
+
+Malformed JSON returns:
+
+```text
+422 Unprocessable Content
+```
+
+and the evidence status becomes:
+
+```text
+FAILED
+```
+
+---
+
+# PDF Extraction
+
+PDF processing uses Apache PDFBox.
+
+Workflow:
+
+```text
+Read PDF bytes
+→ Load document with PDFBox
+→ Verify document validity
+→ Validate page count
+→ Check extraction permissions
+→ Extract each page
+→ Add page headings
+→ Normalise text
+→ Enforce character limit
+```
+
+Example result:
+
+```text
+--- Page 1 ---
+
+Invoice Number: INV-2048
+Amount: Rs. 80,000
+Recipient: Unknown Vendor
+```
+
+The application rejects or reports:
+
+- Empty PDFs
+- Corrupted PDFs
+- Password-protected PDFs
+- PDFs that prohibit text extraction
+- PDFs exceeding the configured page limit
+- Image-only or scanned PDFs without extractable text
+
+OCR is not currently implemented.
+
+---
+
+# Extraction Safety Limits
+
+Configured limits:
+
+```properties
+app.evidence.extraction.max-characters=100000
+app.evidence.extraction.max-pdf-pages=100
+app.evidence.extraction.max-csv-rows=5000
+app.evidence.extraction.max-json-depth=50
+app.evidence.extraction.max-error-message-length=1000
+```
+
+## Maximum Extracted Characters
+
+```text
+100000
+```
+
+Prevents excessively large database content and oversized future AI prompts.
+
+## Maximum PDF Pages
+
+```text
+100
+```
+
+Prevents very large PDFs from consuming excessive processing time and memory.
+
+## Maximum CSV Data Rows
+
+```text
+5000
+```
+
+Limits CSV processing workload.
+
+## Maximum JSON Depth
+
+```text
+50
+```
+
+Prevents excessively nested structures.
+
+## Maximum Stored Error Length
+
+```text
+1000 characters
+```
+
+Prevents large internal exception content from being persisted.
+
+---
+
+# Evidence Processing Status
+
+## `UPLOADED`
+
+The physical file has been stored, but extraction has not started.
+
+## `PROCESSING`
+
+Text extraction is currently running.
+
+## `PROCESSED`
+
+Extraction completed successfully.
+
+The following values are available:
+
+```text
+extracted_text
+extracted_character_count
+processed_at
+```
+
+## `FAILED`
+
+Extraction failed.
+
+The following values are stored:
+
+```text
+extraction_error
+processed_at
+```
+
+Failed evidence may be processed again:
+
+```text
+FAILED
+→ PROCESSING
+→ PROCESSED
+```
+
+---
+
+# Integrity Status
+
+## `NOT_VERIFIED`
+
+No completed integrity comparison is available.
+
+## `VERIFIED`
+
+The current file bytes match the original SHA-256 baseline.
+
+```text
+expected hash == current hash
+```
+
+## `MISMATCH`
+
+The current file bytes differ from the original SHA-256 baseline.
+
+```text
+expected hash != current hash
+```
+
+Text extraction is blocked when an integrity mismatch is detected.
+
+The original SHA-256 value is never replaced with the altered file’s hash.
+
+---
+
+# SHA-256 Duplicate Detection
+
+SHA-256 produces:
 
 ```text
 64 lowercase hexadecimal characters
 ```
 
-Example:
-
-```text
-0bc385d9ab9817a5b281f183d31efdb90984abbfd8e75d94a5ae8c08f1b4aee8
-```
-
-The hash is generated from file bytes, not from:
+The hash is generated from physical file bytes, not from:
 
 - Filename
 - Description
-- Case number
 - Upload time
+- Case number
 - Investigator name
 
 Therefore:
 
 ```text
-Same filename + same bytes
-→ Same SHA-256
+Same bytes + same case
+→ Duplicate rejected
+
+Same bytes + different case
+→ Allowed
 
 Same filename + changed bytes
-→ Different SHA-256
-
-Different filename + same bytes
-→ Same SHA-256
+→ New evidence accepted
 ```
 
-SHA-256 is not encryption. It cannot be decrypted back into the original file.
-
----
-
-## Duplicate Evidence Detection
-
-Duplicate detection is applied within one investigation case.
-
-```text
-Same case + same SHA-256
-→ Rejected with 409 Conflict
-```
-
-```text
-Different case + same SHA-256
-→ Allowed
-```
-
-This allows the same document to be legitimately associated with separate investigations.
-
-Application-level duplicate detection gives a readable response.
-
-The database also contains a combined unique constraint on:
+The database contains a combined unique constraint on:
 
 ```text
 case_id
 sha256_hash
 ```
 
-This acts as a final safeguard against concurrent duplicate uploads.
-
 ---
 
-## Integrity Status Values
+# Evidence Storage
 
-### `NOT_VERIFIED`
-
-No completed integrity comparison is currently available.
-
-### `VERIFIED`
-
-The current stored bytes generate the same SHA-256 value as the original upload baseline.
-
-```text
-expected hash == current hash
-```
-
-### `MISMATCH`
-
-The current stored bytes generate a different SHA-256 value.
-
-```text
-expected hash != current hash
-```
-
-Possible causes include:
-
-- File modification
-- File corruption
-- File replacement
-- Truncation
-- External storage changes
-
-The system never replaces the original hash with the altered hash.
-
----
-
-## Evidence Processing Status Values
-
-### `UPLOADED`
-
-The file is stored but text extraction has not started.
-
-### `PROCESSING`
-
-Text extraction or another processing task is running.
-
-### `PROCESSED`
-
-Processing completed successfully.
-
-### `FAILED`
-
-Processing failed.
-
-Current uploads initially receive:
-
-```text
-UPLOADED
-```
-
-Text extraction and processing-state transitions will be added next.
-
----
-
-## Evidence Storage Structure
-
-Default local structure:
+Default structure:
 
 ```text
 evidence-storage
 ├── case-5
 │   ├── 8ca31a28-3f74-4a43-9e35-b77aeae660cf.txt
-│   └── f240eb74-c714-4781-914e-e4e49007188c.pdf
+│   ├── f240eb74-c714-4781-914e-e4e49007188c.pdf
+│   └── 645cc939-815a-46ce-aab7-30bd83fea5b0.json
 └── case-7
-    └── cdafdd8a-9ab8-4209-aad9-bbc0fb4d71a7.json
+    └── cdafdd8a-9ab8-4209-aad9-bbc0fb4d71a7.csv
 ```
 
 Example mapping:
@@ -1008,13 +1323,13 @@ Stored filename:
 8ca31a28-3f74-4a43-9e35-b77aeae660cf.txt
 ```
 
-The original filename is retained as metadata but is not used as the physical filename.
+The original filename is stored as metadata but is never used directly as the physical filename.
 
 ---
 
-## Evidence Validation
+# Evidence Validation
 
-### Supported Extensions
+## Supported Extensions
 
 ```text
 .pdf
@@ -1034,16 +1349,16 @@ Unsupported examples:
 .html
 ```
 
-### Size Limits
+## Upload Size
 
 ```text
 Maximum file size: 10 MB
 Maximum multipart request size: 11 MB
 ```
 
-### Original Filename
+## Original Filename
 
-The filename:
+The original filename:
 
 - Is required
 - Cannot be blank
@@ -1052,29 +1367,29 @@ The filename:
 - Has control characters removed
 - Is never used directly for physical storage
 
-### Description
+## Description
 
 - Optional
 - Trimmed before storage
 - Maximum 500 characters
 
-### MIME Type
+## MIME Type
 
-The MIME content type must be compatible with the file extension.
+The MIME type must be compatible with the file extension.
 
-### Empty Files
+## Empty Files
 
 Zero-byte evidence files are rejected.
 
 ---
 
-## Security Protections
+# Security Protections
 
-### JWT Authentication
+## JWT Authentication
 
 All case and evidence APIs require a valid JWT.
 
-### Ownership Enforcement
+## Ownership Enforcement
 
 Evidence ownership is derived through:
 
@@ -1085,57 +1400,82 @@ Evidence
 → Authenticated JWT user
 ```
 
-The client cannot provide or change the owner directly.
+The client cannot assign or modify evidence ownership directly.
 
-### Path-Traversal Protection
+## Integrity Verification Before Processing
+
+Extraction verifies the current physical file against its original SHA-256 baseline.
+
+```text
+VERIFIED
+→ Extraction allowed
+
+MISMATCH
+→ Extraction blocked
+```
+
+## Path-Traversal Protection
 
 Storage paths are:
 
-1. Resolved relative to the configured storage root
+1. Resolved relative to the configured root
 2. Normalised
-3. Verified to remain inside the approved root
+3. Verified to remain inside the root
 
-Unsafe paths such as:
+Paths such as:
 
 ```text
 ../../outside-file.txt
 ```
 
-cannot access files outside evidence storage.
+cannot escape the evidence-storage directory.
 
-### UUID Stored Filenames
+## UUID Stored Filenames
 
-UUID filenames prevent:
+UUID names prevent:
 
-- Name collisions
-- Accidental overwriting
-- Use of unsafe uploaded filenames
-- Exposure of descriptive filenames in storage
+- Filename collisions
+- Accidental overwrites
+- Unsafe uploaded names
+- Exposure of descriptive filenames
 
-### Hidden Internal Paths
+## Hidden Internal Paths
 
 API responses do not expose:
 
 ```text
-stored filename
-relative storage path
-absolute server path
-developer machine path
+Stored filename
+Relative storage path
+Absolute server path
+Developer-machine path
 ```
 
-### Git Exclusion
+## Safe Error Persistence
 
-The storage directory must remain ignored:
+Extraction errors do not store:
+
+```text
+Stack traces
+Absolute paths
+Database credentials
+JWT values
+API keys
+Internal implementation details
+```
+
+## Git Exclusion
+
+The storage directory remains ignored:
 
 ```gitignore
 evidence-storage/
 ```
 
-Uploaded evidence must never be pushed to GitHub.
+Uploaded evidence must never be committed to GitHub.
 
 ---
 
-## Current Security Rules
+# Current Security Rules
 
 Public endpoints:
 
@@ -1159,76 +1499,69 @@ DELETE /api/cases/{caseId}
 
 POST   /api/cases/{caseId}/evidence
 GET    /api/cases/{caseId}/evidence
+
 GET    /api/evidence/{evidenceId}
 GET    /api/evidence/{evidenceId}/download
 POST   /api/evidence/{evidenceId}/verify-integrity
+POST   /api/evidence/{evidenceId}/extract-text
+GET    /api/evidence/{evidenceId}/extracted-text
 DELETE /api/evidence/{evidenceId}
 ```
 
 ---
 
-## Error Handling
+# Error Handling
 
 The API currently handles:
 
-- Invalid request fields with `400 Bad Request`
-- Malformed JSON with `400 Bad Request`
+- Request validation errors with `400 Bad Request`
+- Malformed JSON bodies with `400 Bad Request`
 - Unsupported enum values with `400 Bad Request`
 - Invalid pagination with `400 Bad Request`
 - Unsupported sorting with `400 Bad Request`
 - Invalid request-parameter types with `400 Bad Request`
-- Invalid evidence files with `400 Bad Request`
-- Empty evidence files with `400 Bad Request`
 - Unsupported evidence extensions with `400 Bad Request`
-- File and MIME-type mismatches with `400 Bad Request`
-- Missing original SHA-256 baseline with `400 Bad Request`
-- Invalid login credentials with `401 Unauthorized`
+- Invalid evidence MIME types with `400 Bad Request`
+- Empty evidence files with `400 Bad Request`
+- Missing evidence hash baselines with `400 Bad Request`
+- Evidence-integrity mismatches with `400 Bad Request`
+- Invalid credentials with `401 Unauthorized`
 - Missing or invalid JWT tokens with `401 Unauthorized`
 - Disabled accounts with `403 Forbidden`
-- Missing users with `404 Not Found`
-- Missing or unowned cases with `404 Not Found`
-- Missing or unowned evidence with `404 Not Found`
+- Missing or unowned users, cases or evidence with `404 Not Found`
 - Duplicate email registrations with `409 Conflict`
 - Duplicate evidence uploads with `409 Conflict`
 - Database constraint conflicts with `409 Conflict`
-- Files exceeding limits with `413 Content Too Large`
+- Evidence files exceeding upload limits with `413 Content Too Large`
+- Unprocessable TXT, CSV, JSON and PDF content with `422`
 - Evidence-storage failures with `500 Internal Server Error`
 - Unexpected server failures with `500 Internal Server Error`
 
 ---
 
-## Planned Features
+# Planned Features
 
-### Day 6 — Evidence Text Extraction
+## Day 7 — Spring AI and Groq Integration
 
-- TXT text extraction
-- PDF text extraction using Apache PDFBox
-- CSV parsing
-- JSON parsing
-- File-content validation
-- Extractor interface and strategy pattern
-- Extracted-text persistence
-- Processing-status transitions
-- Extraction failure handling
+- Add Spring AI dependencies
+- Configure Groq API access
+- Add environment-based AI credentials
+- Configure `ChatClient`
+- Add prompt templates
+- Add structured response models
+- Add timeout and failure handling
+- Add AI connectivity testing
 
-### Day 7 — Spring AI Integration
-
-- Spring AI dependencies
-- Groq API configuration
-- `ChatClient`
-- Prompt templates
-- Structured AI output
-- API timeout and failure handling
-
-### Day 8 — AI Evidence Analysis
+## Day 8 — AI Evidence Analysis
 
 - Evidence summarisation
 - Risk classification
 - Suspicious findings
 - Recommended investigative actions
-- Persistent AI analysis results
+- Structured AI response validation
+- Persistent AI-analysis results
 
-### Day 9 — Entity and Timeline Extraction
+## Day 9 — Entity and Timeline Extraction
 
 - People
 - Organisations
@@ -1237,36 +1570,83 @@ The API currently handles:
 - URLs
 - IP addresses
 - Dates
-- Money amounts
+- Money values
 - Timeline events
 
-### Day 10 — Notes and Reports
+## Day 10 — Investigator Notes and Reports
 
 - Investigator notes
-- Case-level notes CRUD
-- Aggregated case reports
+- Notes CRUD
+- Case-level report aggregation
 - Report-generation API
+- Evidence and AI result linking
 
-### Later Development
+## Day 11 — Dashboard Backend
 
-- Dashboard analytics
-- React frontend
-- Automated tests
-- Swagger/OpenAPI
-- Docker
-- Cloud deployment
-- Resume and demonstration preparation
+- Case statistics
+- Evidence statistics
+- Risk distribution
+- Recent activity
+- Processing summaries
+- Dashboard API
+
+## Day 12 — React Frontend Foundation
+
+- React and Vite setup
+- Authentication pages
+- JWT session handling
+- Protected routes
+- Responsive application layout
+- Navbar and sidebar
+- API client
+- Theme foundation
+
+## Day 13 — Investigation Interface
+
+- Dashboard
+- Case management screens
+- Case-detail page
+- Evidence upload interface
+- Integrity controls
+- Extracted-text viewer
+- AI analysis display
+- Entities and timeline
+- Investigator notes
+- Report interface
+
+## Day 14 — Testing and Documentation
+
+- Automated service tests
+- Controller tests
+- Security tests
+- OpenAPI documentation
+- Actuator
+- Validation review
+- Frontend testing
+- UI and error-state polish
+
+## Day 15 — Deployment and Presentation
+
+- Backend deployment
+- Frontend deployment
+- Production environment configuration
+- Database deployment
+- Demonstration workflow
+- Resume project description
+- LinkedIn project description
+- Interview questions and explanations
 
 ---
 
-## Git Workflow
+# Git Workflow
 
-Development is committed incrementally.
+Development is committed checkpoint by checkpoint.
 
 ```text
-Complete and test a checkpoint
+Complete implementation
+→ Test functionality
 → Review changed files
-→ Confirm no secrets or uploaded evidence are included
+→ Confirm no secrets or evidence are included
 → Commit to main
 → Push origin
 ```
@@ -1277,18 +1657,19 @@ Never commit:
 DB_PASSWORD
 JWT_SECRET
 JWT access tokens
-API keys
+AI API keys
 evidence-storage/
 target/
-temporary integrity backup files
+temporary integrity backups
+uploaded test evidence
 ```
 
 ---
 
-## Disclaimer
+# Disclaimer
 
 TraceLens AI is an educational and portfolio project.
 
-AI-generated findings must be treated as investigative aids and independently verified before use in legal, disciplinary or security decisions.
+AI-generated findings must be treated as investigative assistance and independently verified before use in legal, disciplinary, financial or security decisions.
 
 Uploaded test evidence must not contain real confidential, personal, privileged or legally restricted information.
