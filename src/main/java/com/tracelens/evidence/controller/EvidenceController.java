@@ -21,8 +21,10 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.tracelens.common.ApiResponse;
 import com.tracelens.common.PageResponse;
+import com.tracelens.evidence.dto.EvidenceExtractionResponse;
 import com.tracelens.evidence.dto.EvidenceIntegrityResponse;
 import com.tracelens.evidence.dto.EvidenceResponse;
+import com.tracelens.evidence.service.EvidenceProcessingService;
 import com.tracelens.evidence.service.EvidenceService;
 import com.tracelens.evidence.storage.EvidenceFileResource;
 
@@ -32,10 +34,17 @@ public class EvidenceController {
 
     private final EvidenceService evidenceService;
 
+    private final EvidenceProcessingService
+            evidenceProcessingService;
+
     public EvidenceController(
-            EvidenceService evidenceService
+            EvidenceService evidenceService,
+            EvidenceProcessingService
+                    evidenceProcessingService
     ) {
         this.evidenceService = evidenceService;
+        this.evidenceProcessingService =
+                evidenceProcessingService;
     }
 
     @PostMapping(
@@ -201,6 +210,60 @@ public class EvidenceController {
                 ApiResponse.success(
                         message,
                         verification
+                );
+
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping(
+            "/evidence/{evidenceId}/extract-text"
+    )
+    public ResponseEntity<
+            ApiResponse<EvidenceExtractionResponse>>
+            extractEvidenceText(
+
+                    @PathVariable Long evidenceId,
+                    @AuthenticationPrincipal Jwt jwt
+            ) {
+
+        EvidenceExtractionResponse extraction =
+                evidenceProcessingService.extractText(
+                        evidenceId,
+                        jwt.getSubject()
+                );
+
+        ApiResponse<EvidenceExtractionResponse> response =
+                ApiResponse.success(
+                        "Evidence text extracted successfully",
+                        extraction
+                );
+
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping(
+            "/evidence/{evidenceId}/extracted-text"
+    )
+    public ResponseEntity<
+            ApiResponse<EvidenceExtractionResponse>>
+            getExtractedText(
+
+                    @PathVariable Long evidenceId,
+                    @AuthenticationPrincipal Jwt jwt
+            ) {
+
+        EvidenceExtractionResponse extraction =
+                evidenceProcessingService
+                        .getExtractionResult(
+                                evidenceId,
+                                jwt.getSubject()
+                        );
+
+        ApiResponse<EvidenceExtractionResponse> response =
+                ApiResponse.success(
+                        "Evidence extraction information "
+                        + "retrieved successfully",
+                        extraction
                 );
 
         return ResponseEntity.ok(response);

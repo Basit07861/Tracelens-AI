@@ -30,6 +30,10 @@ public class GlobalExceptionHandler {
                     GlobalExceptionHandler.class
             );
 
+    private static final HttpStatus
+            EXTRACTION_FAILURE_STATUS =
+                    HttpStatus.valueOf(422);
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorResponse>
             handleValidationException(
@@ -156,6 +160,29 @@ public class GlobalExceptionHandler {
                 .body(errorResponse);
     }
 
+    @ExceptionHandler(
+            EvidenceTextExtractionException.class
+    )
+    public ResponseEntity<ErrorResponse>
+            handleEvidenceTextExtractionException(
+
+                    EvidenceTextExtractionException exception,
+                    HttpServletRequest request
+            ) {
+
+        ErrorResponse errorResponse =
+                createErrorResponse(
+                        EXTRACTION_FAILURE_STATUS,
+                        exception.getMessage(),
+                        request,
+                        Map.of()
+                );
+
+        return ResponseEntity
+                .status(EXTRACTION_FAILURE_STATUS)
+                .body(errorResponse);
+    }
+
     @ExceptionHandler(MaxUploadSizeExceededException.class)
     public ResponseEntity<ErrorResponse>
             handleMaximumUploadSizeExceeded(
@@ -194,8 +221,8 @@ public class GlobalExceptionHandler {
         ErrorResponse errorResponse =
                 createErrorResponse(
                         HttpStatus.INTERNAL_SERVER_ERROR,
-                        "The evidence file could not be stored. "
-                        + "Please try again.",
+                        "The evidence file could not be "
+                        + "processed. Please try again.",
                         request,
                         Map.of()
                 );
