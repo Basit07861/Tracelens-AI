@@ -27,6 +27,12 @@ public interface AiEvidenceAnalysisRepository
             );
 
     Optional<AiEvidenceAnalysis>
+            findFirstByEvidenceIdAndEvidenceInvestigationCaseOwnerEmailIgnoreCaseOrderByRequestedAtDesc(
+                    Long evidenceId,
+                    String ownerEmail
+            );
+
+    Optional<AiEvidenceAnalysis>
             findFirstByEvidenceIdAndStatusOrderByRequestedAtDesc(
                     Long evidenceId,
                     AiAnalysisStatus status
@@ -35,6 +41,10 @@ public interface AiEvidenceAnalysisRepository
     boolean existsByEvidenceIdAndStatusIn(
             Long evidenceId,
             Collection<AiAnalysisStatus> statuses
+    );
+
+    long countByEvidenceId(
+            Long evidenceId
     );
 
     long countByEvidenceIdAndEvidenceInvestigationCaseOwnerEmailIgnoreCase(

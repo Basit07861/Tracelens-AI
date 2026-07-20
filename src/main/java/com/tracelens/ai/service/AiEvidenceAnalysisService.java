@@ -4,6 +4,7 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.HexFormat;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 import org.slf4j.Logger;
@@ -20,6 +21,7 @@ import org.springframework.stereotype.Service;
 import com.tracelens.ai.config.AiAnalysisProperties;
 import com.tracelens.ai.dto.AiEvidenceAnalysisContent;
 import com.tracelens.ai.dto.AiEvidenceAnalysisResponse;
+import com.tracelens.ai.entity.AiAnalysisRequestType;
 import com.tracelens.evidence.dto.EvidenceIntegrityResponse;
 import com.tracelens.evidence.entity.EvidenceStatus;
 import com.tracelens.evidence.service.EvidenceService;
@@ -112,6 +114,31 @@ public class AiEvidenceAnalysisService {
             String authenticatedEmail
     ) {
 
+        return generateAnalysis(
+                evidenceId,
+                authenticatedEmail,
+                AiAnalysisRequestType.INITIAL
+        );
+    }
+
+    public AiEvidenceAnalysisResponse regenerateAnalysis(
+            Long evidenceId,
+            String authenticatedEmail
+    ) {
+
+        return generateAnalysis(
+                evidenceId,
+                authenticatedEmail,
+                AiAnalysisRequestType.REGENERATION
+        );
+    }
+
+    private AiEvidenceAnalysisResponse generateAnalysis(
+            Long evidenceId,
+            String authenticatedEmail,
+            AiAnalysisRequestType requestType
+    ) {
+
         AiEvidenceAnalysisTarget target =
                 stateService.getTarget(
                         evidenceId,
@@ -141,6 +168,8 @@ public class AiEvidenceAnalysisService {
         Long analysisId =
                 stateService.createPendingAnalysis(
                         evidenceId,
+                        authenticatedEmail,
+                        requestType,
                         provider,
                         model,
                         properties.getPromptVersion(),
@@ -150,9 +179,9 @@ public class AiEvidenceAnalysisService {
                         sourceTextSha256
                 );
 
-        stateService.markProcessing(analysisId);
-
         try {
+            stateService.markProcessing(analysisId);
+
             String prompt = renderPrompt(
                     target,
                     sourceTextSha256
@@ -404,7 +433,7 @@ public class AiEvidenceAnalysisService {
     ) {
 
         Map<String, Object> variables =
-                new java.util.LinkedHashMap<>();
+                new LinkedHashMap<>();
 
         variables.put(
                 "fileName",
