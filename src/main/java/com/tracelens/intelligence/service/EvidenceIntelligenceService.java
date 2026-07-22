@@ -33,6 +33,7 @@ import com.tracelens.intelligence.dto.EvidenceIntelligenceRunResponse;
 import com.tracelens.intelligence.dto.IntelligenceEntityContent;
 import com.tracelens.intelligence.dto.IntelligenceEntityReferenceContent;
 import com.tracelens.intelligence.dto.IntelligenceTimelineEventContent;
+import com.tracelens.intelligence.entity.IntelligenceRunRequestType;
 
 @Service
 public class EvidenceIntelligenceService {
@@ -67,6 +68,9 @@ public class EvidenceIntelligenceService {
     private final EvidenceIntelligenceStateService
             stateService;
 
+    private final EvidenceIntelligenceRunStartService
+            runStartService;
+
     private final DeterministicEntityExtractor
             deterministicExtractor;
 
@@ -91,6 +95,9 @@ public class EvidenceIntelligenceService {
 
             EvidenceIntelligenceStateService
                     stateService,
+
+            EvidenceIntelligenceRunStartService
+                    runStartService,
 
             DeterministicEntityExtractor
                     deterministicExtractor,
@@ -118,6 +125,8 @@ public class EvidenceIntelligenceService {
         this.evidenceService = evidenceService;
         this.stateService = stateService;
 
+        this.runStartService = runStartService;
+
         this.deterministicExtractor =
                 deterministicExtractor;
 
@@ -139,6 +148,35 @@ public class EvidenceIntelligenceService {
 
                     Long evidenceId,
                     String authenticatedEmail
+            ) {
+
+        return runIntelligence(
+                evidenceId,
+                authenticatedEmail,
+                IntelligenceRunRequestType.INITIAL
+        );
+    }
+
+    public EvidenceIntelligenceRunResponse
+            regenerateIntelligence(
+
+                    Long evidenceId,
+                    String authenticatedEmail
+            ) {
+
+        return runIntelligence(
+                evidenceId,
+                authenticatedEmail,
+                IntelligenceRunRequestType.REGENERATION
+        );
+    }
+
+    private EvidenceIntelligenceRunResponse
+            runIntelligence(
+
+                    Long evidenceId,
+                    String authenticatedEmail,
+                    IntelligenceRunRequestType requestType
             ) {
 
         EvidenceIntelligenceTarget target =
@@ -168,16 +206,18 @@ public class EvidenceIntelligenceService {
                         target.extractedText()
                 );
 
-        Long runId = stateService.createPendingRun(
-                evidenceId,
-                authenticatedEmail,
-                provider,
-                model,
-                properties.getPromptVersion(),
-                properties.getResponseSchemaVersion(),
-                target.sourceEvidenceSha256(),
-                sourceTextSha256
-        );
+        Long runId =
+                runStartService.createPendingRun(
+                        evidenceId,
+                        authenticatedEmail,
+                        requestType,
+                        provider,
+                        model,
+                        properties.getPromptVersion(),
+                        properties.getResponseSchemaVersion(),
+                        target.sourceEvidenceSha256(),
+                        sourceTextSha256
+                );
 
         try {
             stateService.markProcessing(runId);

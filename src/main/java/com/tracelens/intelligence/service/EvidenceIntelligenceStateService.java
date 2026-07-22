@@ -1,6 +1,5 @@
 package com.tracelens.intelligence.service;
 
-import java.time.LocalDateTime;
 import java.util.EnumSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -8,6 +7,9 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,15 +21,22 @@ import com.tracelens.evidence.entity.Evidence;
 import com.tracelens.evidence.repository.EvidenceRepository;
 import com.tracelens.exception.EvidenceNotFoundException;
 import com.tracelens.exception.InvalidRequestException;
+import com.tracelens.intelligence.dto.EvidenceIntelligenceRunHistoryResponse;
 import com.tracelens.intelligence.dto.EvidenceIntelligenceRunResponse;
+import com.tracelens.intelligence.dto.EvidenceIntelligenceRunSummaryResponse;
+import com.tracelens.intelligence.dto.ExtractedEntityPageResponse;
 import com.tracelens.intelligence.dto.ExtractedEntityResponse;
 import com.tracelens.intelligence.dto.IntelligenceEntityReferenceContent;
+import com.tracelens.intelligence.dto.TimelineEventPageResponse;
 import com.tracelens.intelligence.dto.TimelineEventResponse;
 import com.tracelens.intelligence.entity.EvidenceIntelligenceRun;
 import com.tracelens.intelligence.entity.ExtractedEntity;
+import com.tracelens.intelligence.entity.ExtractedEntityType;
 import com.tracelens.intelligence.entity.IntelligenceMethod;
 import com.tracelens.intelligence.entity.IntelligenceRunStatus;
 import com.tracelens.intelligence.entity.TimelineEvent;
+import com.tracelens.intelligence.entity.TimelineEventCertainty;
+import com.tracelens.intelligence.entity.TimelineTemporalPrecision;
 import com.tracelens.intelligence.repository.EvidenceIntelligenceRunRepository;
 import com.tracelens.intelligence.repository.ExtractedEntityRepository;
 import com.tracelens.intelligence.repository.TimelineEventRepository;
@@ -35,6 +44,8 @@ import com.tracelens.investigation.entity.InvestigationCase;
 
 @Service
 public class EvidenceIntelligenceStateService {
+
+    private static final int MAXIMUM_PAGE_SIZE = 100;
 
     private static final Set<IntelligenceRunStatus>
             ACTIVE_STATUSES = EnumSet.of(
@@ -84,6 +95,10 @@ public class EvidenceIntelligenceStateService {
                 normalizationService;
     }
 
+    /*
+     * Returns the owned evidence information required
+     * by the intelligence-generation service.
+     */
     @Transactional(readOnly = true)
     public EvidenceIntelligenceTarget getTarget(
             Long evidenceId,
@@ -110,6 +125,338 @@ public class EvidenceIntelligenceStateService {
         );
     }
 
+    /*
+     * Retrieves one complete intelligence run securely.
+     *
+     * Ownership is checked using:
+     * run -> evidence -> case -> owner -> email.
+     */
+    @Transactional(readOnly = true)
+    public EvidenceIntelligenceRunResponse getRun(
+            Long runId,
+            String authenticatedEmail
+    ) {
+
+        EvidenceIntelligenceRun run =
+                findOwnedRun(
+                        runId,
+                        authenticatedEmail
+                );
+
+        List<ExtractedEntity> entities =
+                entityRepository
+                        .findAllByIntelligenceRunIdOrderByEntityTypeAscNormalizedValueAsc(
+                                run.getId()
+                        );
+
+        List<TimelineEvent> timelineEvents =
+                timelineRepository
+                        .findAllByIntelligenceRunIdOrderBySequenceNumberAsc(
+                                run.getId()
+                        );
+
+        return mapToResponse(
+                run,
+                entities,
+                timelineEvents
+        );
+    }
+
+    /*
+     * Retrieves the newest intelligence run belonging
+     * to owned evidence.
+     */
+    @Transactional(readOnly = true)
+    public EvidenceIntelligenceRunResponse getLatestRun(
+            Long evidenceId,
+            String authenticatedEmail
+    ) {
+
+        Evidence evidence = findOwnedEvidence(
+                evidenceId,
+                authenticatedEmail
+        );
+
+        String normalizedEmail =
+                normalizeEmail(authenticatedEmail);
+
+        EvidenceIntelligenceRun run =
+                runRepository
+                        .findFirstByEvidenceIdAndEvidenceInvestigationCaseOwnerEmailIgnoreCaseOrderByRequestedAtDesc(
+                                evidence.getId(),
+                                normalizedEmail
+                        )
+                        .orElseThrow(
+                                () -> new EvidenceNotFoundException(
+                                        "Intelligence run was not found"
+                                )
+                        );
+
+        List<ExtractedEntity> entities =
+                entityRepository
+                        .findAllByIntelligenceRunIdOrderByEntityTypeAscNormalizedValueAsc(
+                                run.getId()
+                        );
+
+        List<TimelineEvent> timelineEvents =
+                timelineRepository
+                        .findAllByIntelligenceRunIdOrderBySequenceNumberAsc(
+                                run.getId()
+                        );
+
+        return mapToResponse(
+                run,
+                entities,
+                timelineEvents
+        );
+    }
+
+    /*
+     * Retrieves paginated run history without loading
+     * every entity and timeline event for every run.
+     */
+    @Transactional(readOnly = true)
+    public EvidenceIntelligenceRunHistoryResponse
+            getRunHistory(
+
+                    Long evidenceId,
+                    String authenticatedEmail,
+                    int page,
+                    int size
+            ) {
+
+        Evidence evidence = findOwnedEvidence(
+                evidenceId,
+                authenticatedEmail
+        );
+
+        String normalizedEmail =
+                normalizeEmail(authenticatedEmail);
+
+        PageRequest pageable =
+                createPageRequest(
+                        page,
+                        size,
+                        Sort.by(
+                                Sort.Order.desc(
+                                        "requestedAt"
+                                ),
+                                Sort.Order.desc("id")
+                        )
+                );
+
+        Page<EvidenceIntelligenceRun> runPage =
+                runRepository
+                        .findAllByEvidenceIdAndEvidenceInvestigationCaseOwnerEmailIgnoreCase(
+                                evidence.getId(),
+                                normalizedEmail,
+                                pageable
+                        );
+
+        List<EvidenceIntelligenceRunSummaryResponse>
+                content =
+                        runPage.getContent()
+                                .stream()
+                                .map(this::mapToSummary)
+                                .toList();
+
+        return new EvidenceIntelligenceRunHistoryResponse(
+                evidence.getId(),
+                content,
+                runPage.getNumber(),
+                runPage.getSize(),
+                runPage.getTotalElements(),
+                runPage.getTotalPages(),
+                runPage.getNumberOfElements(),
+                runPage.isFirst(),
+                runPage.isLast()
+        );
+    }
+
+    /*
+     * Retrieves paginated entities for a run.
+     *
+     * entityType is optional. When it is null,
+     * every entity type is returned.
+     */
+    @Transactional(readOnly = true)
+    public ExtractedEntityPageResponse getEntities(
+            Long runId,
+            String authenticatedEmail,
+            ExtractedEntityType entityType,
+            int page,
+            int size
+    ) {
+
+        EvidenceIntelligenceRun run =
+                findOwnedRun(
+                        runId,
+                        authenticatedEmail
+                );
+
+        PageRequest pageable =
+                createPageRequest(
+                        page,
+                        size,
+                        Sort.by(
+                                Sort.Order.asc("entityType"),
+                                Sort.Order.asc(
+                                        "normalizedValue"
+                                ),
+                                Sort.Order.asc("id")
+                        )
+                );
+
+        Page<ExtractedEntity> entityPage;
+
+        if (entityType == null) {
+
+            entityPage =
+                    entityRepository
+                            .findAllByIntelligenceRunId(
+                                    run.getId(),
+                                    pageable
+                            );
+        }
+        else {
+
+            entityPage =
+                    entityRepository
+                            .findAllByIntelligenceRunIdAndEntityType(
+                                    run.getId(),
+                                    entityType,
+                                    pageable
+                            );
+        }
+
+        List<ExtractedEntityResponse> content =
+                entityPage.getContent()
+                        .stream()
+                        .map(this::mapEntity)
+                        .toList();
+
+        return new ExtractedEntityPageResponse(
+                run.getId(),
+                run.getEvidence().getId(),
+                entityType,
+                content,
+                entityPage.getNumber(),
+                entityPage.getSize(),
+                entityPage.getTotalElements(),
+                entityPage.getTotalPages(),
+                entityPage.getNumberOfElements(),
+                entityPage.isFirst(),
+                entityPage.isLast()
+        );
+    }
+
+    /*
+     * Retrieves paginated timeline events.
+     *
+     * certainty and temporalPrecision are optional.
+     * The correct repository query is selected based
+     * on the supplied filters.
+     */
+    @Transactional(readOnly = true)
+    public TimelineEventPageResponse getTimelineEvents(
+            Long runId,
+            String authenticatedEmail,
+            TimelineEventCertainty certainty,
+            TimelineTemporalPrecision temporalPrecision,
+            int page,
+            int size
+    ) {
+
+        EvidenceIntelligenceRun run =
+                findOwnedRun(
+                        runId,
+                        authenticatedEmail
+                );
+
+        PageRequest pageable =
+                createPageRequest(
+                        page,
+                        size,
+                        Sort.by(
+                                Sort.Order.asc(
+                                        "sequenceNumber"
+                                ),
+                                Sort.Order.asc("id")
+                        )
+                );
+
+        Page<TimelineEvent> timelinePage;
+
+        if (
+                certainty != null
+                && temporalPrecision != null
+        ) {
+
+            timelinePage =
+                    timelineRepository
+                            .findAllByIntelligenceRunIdAndCertaintyAndTemporalPrecision(
+                                    run.getId(),
+                                    certainty,
+                                    temporalPrecision,
+                                    pageable
+                            );
+        }
+        else if (certainty != null) {
+
+            timelinePage =
+                    timelineRepository
+                            .findAllByIntelligenceRunIdAndCertainty(
+                                    run.getId(),
+                                    certainty,
+                                    pageable
+                            );
+        }
+        else if (temporalPrecision != null) {
+
+            timelinePage =
+                    timelineRepository
+                            .findAllByIntelligenceRunIdAndTemporalPrecision(
+                                    run.getId(),
+                                    temporalPrecision,
+                                    pageable
+                            );
+        }
+        else {
+
+            timelinePage =
+                    timelineRepository
+                            .findAllByIntelligenceRunId(
+                                    run.getId(),
+                                    pageable
+                            );
+        }
+
+        List<TimelineEventResponse> content =
+                timelinePage.getContent()
+                        .stream()
+                        .map(this::mapEvent)
+                        .toList();
+
+        return new TimelineEventPageResponse(
+                run.getId(),
+                run.getEvidence().getId(),
+                certainty,
+                temporalPrecision,
+                content,
+                timelinePage.getNumber(),
+                timelinePage.getSize(),
+                timelinePage.getTotalElements(),
+                timelinePage.getTotalPages(),
+                timelinePage.getNumberOfElements(),
+                timelinePage.isFirst(),
+                timelinePage.isLast()
+        );
+    }
+
+    /*
+     * Creates the pending database row before the
+     * longer intelligence extraction process begins.
+     */
     @Transactional(
             propagation = Propagation.REQUIRES_NEW
     )
@@ -452,14 +799,58 @@ public class EvidenceIntelligenceStateService {
                 );
     }
 
+    /*
+     * Internal lifecycle lookup.
+     *
+     * It is used only after a run has already been
+     * securely created by the authenticated workflow.
+     */
     private EvidenceIntelligenceRun findRun(
             Long runId
     ) {
+
+        if (runId == null || runId <= 0) {
+            throw new IllegalStateException(
+                    "Intelligence run was not found"
+            );
+        }
 
         return runRepository
                 .findById(runId)
                 .orElseThrow(
                         () -> new IllegalStateException(
+                                "Intelligence run was not found"
+                        )
+                );
+    }
+
+    /*
+     * Secure public lookup for retrieval endpoints.
+     *
+     * An unowned ID produces the same 404 response as
+     * a missing ID.
+     */
+    private EvidenceIntelligenceRun findOwnedRun(
+            Long runId,
+            String authenticatedEmail
+    ) {
+
+        if (runId == null || runId <= 0) {
+            throw new EvidenceNotFoundException(
+                    "Intelligence run was not found"
+            );
+        }
+
+        String normalizedEmail =
+                normalizeEmail(authenticatedEmail);
+
+        return runRepository
+                .findByIdAndEvidenceInvestigationCaseOwnerEmailIgnoreCase(
+                        runId,
+                        normalizedEmail
+                )
+                .orElseThrow(
+                        () -> new EvidenceNotFoundException(
                                 "Intelligence run was not found"
                         )
                 );
@@ -478,6 +869,35 @@ public class EvidenceIntelligenceStateService {
         return email
                 .strip()
                 .toLowerCase(Locale.ROOT);
+    }
+
+    private PageRequest createPageRequest(
+            int page,
+            int size,
+            Sort sort
+    ) {
+
+        if (page < 0) {
+            throw new InvalidRequestException(
+                    "Page number cannot be negative"
+            );
+        }
+
+        if (
+                size < 1
+                || size > MAXIMUM_PAGE_SIZE
+        ) {
+            throw new InvalidRequestException(
+                    "Page size must be between 1 and "
+                    + MAXIMUM_PAGE_SIZE
+            );
+        }
+
+        return PageRequest.of(
+                page,
+                size,
+                sort
+        );
     }
 
     private EvidenceIntelligenceRunResponse
@@ -504,9 +924,7 @@ public class EvidenceIntelligenceStateService {
                         .toList();
 
         Long sourceAnalysisId =
-                run.getSourceAnalysis() == null
-                        ? null
-                        : run.getSourceAnalysis().getId();
+                getSourceAnalysisId(run);
 
         return new EvidenceIntelligenceRunResponse(
                 run.getId(),
@@ -535,6 +953,42 @@ public class EvidenceIntelligenceStateService {
                 run.getCompletedAt(),
                 run.getUpdatedAt()
         );
+    }
+
+    private EvidenceIntelligenceRunSummaryResponse
+            mapToSummary(
+
+                    EvidenceIntelligenceRun run
+            ) {
+
+        return new EvidenceIntelligenceRunSummaryResponse(
+                run.getId(),
+                run.getEvidence().getId(),
+                getSourceAnalysisId(run),
+                run.getStatus(),
+                run.getMethod(),
+                run.isHumanReviewRequired(),
+                run.getProvider(),
+                run.getModel(),
+                run.getPromptVersion(),
+                run.getResponseSchemaVersion(),
+                run.getEntityCount(),
+                run.getTimelineEventCount(),
+                run.getFailureMessage(),
+                run.getRequestedAt(),
+                run.getStartedAt(),
+                run.getCompletedAt(),
+                run.getUpdatedAt()
+        );
+    }
+
+    private Long getSourceAnalysisId(
+            EvidenceIntelligenceRun run
+    ) {
+
+        return run.getSourceAnalysis() == null
+                ? null
+                : run.getSourceAnalysis().getId();
     }
 
     private ExtractedEntityResponse mapEntity(
