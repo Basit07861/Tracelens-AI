@@ -1,5 +1,6 @@
 package com.tracelens.evidence.repository;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.domain.Page;
@@ -37,6 +38,12 @@ public interface EvidenceRepository
                     Long caseId,
                     String ownerEmail,
                     Pageable pageable
+            );
+
+    List<Evidence>
+            findAllByInvestigationCaseIdAndInvestigationCaseOwnerEmailIgnoreCaseOrderByUploadedAtAsc(
+                    Long caseId,
+                    String ownerEmail
             );
 
     long countByInvestigationCaseIdAndInvestigationCaseOwnerEmailIgnoreCase(
