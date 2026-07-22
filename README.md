@@ -6,15 +6,17 @@ It enables authorised investigators to:
 
 - Register and authenticate securely
 - Create and manage investigation cases
-- Upload and organise digital evidence
+- Upload, organise, download and securely delete digital evidence
 - Preserve evidence integrity using SHA-256
-- Detect duplicate files
-- Verify whether stored evidence was modified
+- Detect duplicate files and verify whether stored evidence was modified
 - Extract readable content from TXT, CSV, JSON and PDF files
-- Generate structured AI evidence previews
-- Classify preliminary risk levels
-- Identify evidence-supported indicators and limitations
-- Search, filter, download and securely delete evidence
+- Generate temporary AI previews and persistent AI evidence analyses
+- Classify preliminary risk levels and record evidence-supported findings
+- Extract structured entities using deterministic and AI-assisted methods
+- Build persistent investigation timelines from processed evidence
+- Retrieve intelligence history and safely regenerate intelligence runs
+- Create, edit, pin and delete investigator notes
+- Generate one aggregated case report containing saved case, evidence, analysis, intelligence and note data
 
 > AI-generated output is investigative assistance only. It is not legal proof, a final conclusion, or a substitute for independent human review.
 
@@ -22,22 +24,32 @@ It enables authorised investigators to:
 
 ## Current Status
 
-The backend implementation is complete through **Day 8** of the project plan.
+The backend implementation is complete through **Day 10** of the project plan.
+
+**Backend MVP status: complete.**
 
 Implemented so far:
 
-- Spring Boot backend foundation
-- MySQL database integration
+- Spring Boot backend foundation and MySQL integration
 - Registration, login, JWT authentication and BCrypt password hashing
 - Investigation-case CRUD, search, filtering, pagination and ownership enforcement
-- Secure evidence upload, download, listing and deletion
-- TXT, CSV, JSON and PDF support
-- SHA-256 evidence hashing, duplicate detection and integrity verification
-- Persistent extracted-text storage
+- Secure evidence upload, listing, metadata retrieval, download and deletion
+- TXT, CSV, JSON and PDF evidence support
+- SHA-256 hashing, duplicate detection and integrity verification
+- Persistent extracted-text storage with controlled processing states
 - Structured AI previews using Spring AI and Groq
-- Persistent AI evidence analyses
-- AI analysis history, regeneration and concurrency protection
-- Safe provider-error handling and mandatory human review
+- Persistent AI evidence analyses with history, regeneration and concurrency protection
+- Persistent evidence-intelligence runs
+- Hybrid deterministic and AI-assisted entity extraction
+- Structured timeline-event extraction with entity links
+- Direct, latest and paginated intelligence-run retrieval
+- Paginated entity and timeline retrieval with optional filters
+- Intelligence regeneration with previous runs preserved
+- Concurrent intelligence-run protection
+- Investigator-note CRUD with pinning, validation and optimistic locking
+- Secure aggregated case-report generation
+- Report ordering, generation timestamp and mandatory AI-verification disclaimer
+- Safe error handling, ownership enforcement and internal-field protection across the completed workflow
 
 ---
 
@@ -53,7 +65,10 @@ Implemented so far:
 - Protected endpoints
 - Authenticated user lookup
 - Disabled-account handling
-- Ownership enforcement for cases, evidence and AI analysis
+- Ownership enforcement for cases, evidence, analyses, intelligence runs, notes and reports
+- Missing and unowned resources return the same safe not-found response
+- Environment-based secret management
+- Internal filesystem paths and security-sensitive fields are excluded from API DTOs
 
 ### Investigation Cases
 
@@ -91,7 +106,7 @@ Implemented so far:
 - Integrity verification endpoint
 - `VERIFIED`, `MISMATCH` and `NOT_VERIFIED` states
 - Original baseline hash is never replaced
-- Evidence integrity is rechecked before AI processing
+- Evidence integrity is rechecked before extraction, analysis and intelligence generation
 
 ### Evidence Text Extraction
 
@@ -141,6 +156,70 @@ Implemented so far:
 - Analysis regeneration
 - Previous results preserved
 - Pessimistic concurrency protection
+
+### Evidence Intelligence and Timeline
+
+- Persistent intelligence runs linked to evidence
+- Lifecycle states: `PENDING`, `PROCESSING`, `COMPLETED`, `FAILED`
+- Methods: `DETERMINISTIC`, `AI`, `HYBRID`
+- Hybrid deterministic and AI-assisted extraction
+- Entity types:
+  - `PERSON`
+  - `ORGANIZATION`
+  - `EMAIL_ADDRESS`
+  - `PHONE_NUMBER`
+  - `URL`
+  - `IP_ADDRESS`
+  - `DATE`
+  - `DATE_TIME`
+  - `TIME`
+  - `MONEY`
+- Normalised entity values for deduplication
+- Original display values and supporting context
+- Confidence, occurrence count and character offsets
+- Timeline titles, descriptions and source expressions
+- Normalised date/time values
+- Temporal precision and certainty
+- Links between timeline events and involved entities
+- Direct and latest-run retrieval
+- Paginated run history
+- Filtered entity retrieval
+- Filtered timeline retrieval
+- Intelligence regeneration with previous runs preserved
+- Concurrent-run protection
+- Evidence and case ownership enforcement
+
+### Investigator Notes
+
+- Persistent notes linked to cases and authors
+- Create and list notes for owned cases
+- Update note content and pinned state
+- Delete owned notes
+- Maximum content length of 5,000 characters
+- Blank-content rejection
+- Pinned notes displayed first
+- Newest notes displayed first within each pinned group
+- Author resolved from the authenticated user
+- Optimistic locking through a version column
+- Safe `404` handling for missing and unowned notes
+
+### Aggregated Case Report
+
+- Secure endpoint: `GET /api/cases/{caseId}/report`
+- Ownership verified before aggregation
+- Case summary
+- Evidence metadata ordered by upload time
+- Latest completed AI analyses
+- Latest completed intelligence output for each evidence item
+- Aggregated extracted entities
+- Chronologically ordered timeline events
+- Investigator notes with pinned notes first
+- Report-generation timestamp
+- Mandatory disclaimer:
+  - `AI-generated findings are investigative aids and must be independently verified.`
+- JSON response for the backend MVP
+- Safe DTO-only output
+- No storage paths, password hashes, JWT claims, access tokens or internal exception details
 
 ---
 
@@ -240,6 +319,51 @@ Implemented so far:
 - Preserved previous analysis attempts
 - Added pessimistic locking
 - Prevented simultaneous analysis generation for the same evidence
+
+### Day 9 — Evidence Intelligence and Timeline
+
+- Added persistent evidence-intelligence runs
+- Added intelligence lifecycle and method enums
+- Added deterministic entity extraction
+- Added structured AI-assisted entity and timeline extraction
+- Combined deterministic and AI results through a hybrid workflow
+- Added entity normalisation and deduplication
+- Added entity context, confidence, occurrence counts and character offsets
+- Added timeline descriptions, temporal expressions and normalised dates
+- Added timeline certainty and temporal-precision values
+- Linked timeline events to involved entities
+- Added full intelligence-run retrieval
+- Added latest-run retrieval
+- Added paginated intelligence history
+- Added paginated and filtered entity retrieval
+- Added paginated and filtered timeline retrieval
+- Added intelligence regeneration
+- Preserved previous intelligence runs
+- Added source-analysis and source-hash metadata
+- Added concurrent-run protection
+- Enforced ownership for every intelligence operation
+
+### Day 10 — Investigator Notes and Final Report
+
+- Added investigator-note persistence
+- Linked notes to investigation cases and authenticated authors
+- Added note creation and listing
+- Added note content and pin-state updates
+- Added note deletion
+- Added blank and 5,000-character validation
+- Added pinned-first and newest-first ordering
+- Added optimistic locking for note updates
+- Added secure note repository queries
+- Added centralised note-not-found handling
+- Added the aggregated case-report response DTO
+- Added the secure final-report service and endpoint
+- Aggregated case, evidence, analyses, entities, timeline and notes
+- Used the latest completed analysis and intelligence data
+- Added deterministic report ordering
+- Added report-generation timestamp
+- Added the mandatory AI-verification disclaimer
+- Prevented internal storage and security fields from leaking
+- Completed the backend MVP through Day 10
 
 ---
 
@@ -394,7 +518,49 @@ com.tracelens
 │   ├── GlobalExceptionHandler.java
 │   ├── InvalidEvidenceFileException.java
 │   ├── InvalidRequestException.java
+│   ├── NoteNotFoundException.java
 │   └── UserNotFoundException.java
+│
+├── intelligence
+│   ├── config
+│   │   └── IntelligenceExtractionProperties.java
+│   ├── controller
+│   │   └── IntelligenceController.java
+│   ├── dto
+│   │   ├── EvidenceIntelligenceContent.java
+│   │   ├── EvidenceIntelligenceRunHistoryResponse.java
+│   │   ├── EvidenceIntelligenceRunResponse.java
+│   │   ├── EvidenceIntelligenceRunSummaryResponse.java
+│   │   ├── ExtractedEntityPageResponse.java
+│   │   ├── ExtractedEntityResponse.java
+│   │   ├── IntelligenceEntityContent.java
+│   │   ├── IntelligenceEntityReferenceContent.java
+│   │   ├── IntelligenceTimelineEventContent.java
+│   │   ├── TimelineEventPageResponse.java
+│   │   └── TimelineEventResponse.java
+│   ├── entity
+│   │   ├── EvidenceIntelligenceRun.java
+│   │   ├── ExtractedEntity.java
+│   │   ├── ExtractedEntityType.java
+│   │   ├── IntelligenceMethod.java
+│   │   ├── IntelligenceRunStatus.java
+│   │   ├── TimelineEvent.java
+│   │   ├── TimelineEventCertainty.java
+│   │   └── TimelineTemporalPrecision.java
+│   ├── repository
+│   │   ├── EvidenceIntelligenceRunRepository.java
+│   │   ├── ExtractedEntityRepository.java
+│   │   └── TimelineEventRepository.java
+│   └── service
+│       ├── DeterministicEntityExtractor.java
+│       ├── EvidenceIntelligenceRunStartService.java
+│       ├── EvidenceIntelligenceService.java
+│       ├── EvidenceIntelligenceStateService.java
+│       ├── EvidenceIntelligenceTarget.java
+│       ├── EvidenceIntelligenceValidator.java
+│       ├── IntelligenceEntityCandidate.java
+│       ├── IntelligenceEntityNormalizationService.java
+│       └── IntelligenceTimelineCandidate.java
 │
 ├── investigation
 │   ├── controller
@@ -413,6 +579,28 @@ com.tracelens
 │   │   └── InvestigationCaseSpecifications.java
 │   └── service
 │       └── InvestigationCaseService.java
+│
+├── note
+│   ├── controller
+│   │   └── InvestigatorNoteController.java
+│   ├── dto
+│   │   ├── CreateNoteRequest.java
+│   │   ├── NoteResponse.java
+│   │   └── UpdateNoteRequest.java
+│   ├── entity
+│   │   └── InvestigatorNote.java
+│   ├── repository
+│   │   └── InvestigatorNoteRepository.java
+│   └── service
+│       └── InvestigatorNoteService.java
+│
+├── report
+│   ├── controller
+│   │   └── CaseReportController.java
+│   ├── dto
+│   │   └── CaseReportResponse.java
+│   └── service
+│       └── CaseReportService.java
 │
 ├── security
 │   ├── CustomUserDetailsService.java
@@ -442,6 +630,7 @@ Resources:
 src/main/resources
 ├── prompts
 │   ├── evidence-analysis-user.st
+│   ├── evidence-intelligence-user.st
 │   └── evidence-preview-user.st
 └── application.properties
 ```
@@ -450,41 +639,51 @@ src/main/resources
 
 ## Database Structure
 
-Current tables:
+Current tables include:
 
 ```text
 users
 investigation_cases
 evidence_files
+
 ai_evidence_analyses
 ai_analysis_findings
 ai_analysis_actions
 ai_analysis_limitations
+
+evidence_intelligence_runs
+extracted_entities
+timeline_events
+timeline-event/entity association table
+
+investigator_notes
 ```
 
 ### Relationships
 
 ```text
 User
-  │
-  │ owns
-  ▼
+  ├── owns InvestigationCase
+  └── authors InvestigatorNote
+
 InvestigationCase
-  │
-  │ contains
-  ▼
+  ├── contains Evidence
+  └── contains InvestigatorNote
+
 Evidence
-  │
-  │ has many analysis attempts
-  ▼
-AiEvidenceAnalysis
-  │
-  ├── Suspicious findings
-  ├── Recommended actions
-  └── Limitations
+  ├── has many AiEvidenceAnalysis attempts
+  └── has many EvidenceIntelligenceRun attempts
+
+EvidenceIntelligenceRun
+  ├── may reference a completed AiEvidenceAnalysis
+  ├── contains ExtractedEntity records
+  └── contains TimelineEvent records
+
+TimelineEvent
+  └── may reference multiple involved ExtractedEntity records
 ```
 
-Foreign keys:
+### Important Foreign Keys
 
 ```text
 investigation_cases.owner_id
@@ -504,6 +703,24 @@ ai_analysis_actions.analysis_id
 
 ai_analysis_limitations.analysis_id
 → ai_evidence_analyses.id
+
+evidence_intelligence_runs.evidence_id
+→ evidence_files.id
+
+evidence_intelligence_runs.source_analysis_id
+→ ai_evidence_analyses.id
+
+extracted_entities.intelligence_run_id
+→ evidence_intelligence_runs.id
+
+timeline_events.intelligence_run_id
+→ evidence_intelligence_runs.id
+
+investigator_notes.case_id
+→ investigation_cases.id
+
+investigator_notes.author_id
+→ users.id
 ```
 
 ### Main Tables
@@ -516,24 +733,15 @@ ai_analysis_limitations.analysis_id
 
 `ai_evidence_analyses` stores persistent AI analysis output, lifecycle status, provider metadata, source hashes, token usage and timestamps.
 
-Collection tables store ordered analysis items:
+`evidence_intelligence_runs` stores intelligence lifecycle state, generation method, source-analysis reference, provider metadata, source hashes, result counts and timestamps.
 
-```text
-ai_analysis_findings
-- analysis_id
-- finding_order
-- finding_text
+`extracted_entities` stores normalised entity values, supporting context, confidence, occurrence counts and character offsets for a specific intelligence run.
 
-ai_analysis_actions
-- analysis_id
-- action_order
-- action_text
+`timeline_events` stores ordered event descriptions, temporal expressions, normalised date/time values, temporal precision, certainty, context and entity links.
 
-ai_analysis_limitations
-- analysis_id
-- limitation_order
-- limitation_text
-```
+`investigator_notes` stores case notes, authenticated authors, pinned state, optimistic-lock version and timestamps.
+
+Analysis collection tables preserve ordered findings, actions and limitations. Intelligence and note records remain independently queryable and are aggregated only when the final report is requested.
 
 ---
 
@@ -694,6 +902,8 @@ server.error.include-message=always
 server.error.include-binding-errors=always
 ```
 
+Day 9 intelligence limits, prompt/schema versions and validation settings are bound through `IntelligenceExtractionProperties`. Keep these settings in `application.properties` under the intelligence configuration prefix used by the current project.
+
 ---
 
 ## Running the Application
@@ -783,7 +993,7 @@ GET    /api/evidence/{evidenceId}/extracted-text
 DELETE /api/evidence/{evidenceId}
 ```
 
-### AI
+### AI Preview and Persistent Analysis
 
 ```http
 GET  /api/ai/status
@@ -793,6 +1003,53 @@ POST /api/ai/evidence/{evidenceId}/analyses/regenerate
 GET  /api/ai/analyses/{analysisId}
 GET  /api/ai/evidence/{evidenceId}/analyses/latest
 GET  /api/ai/evidence/{evidenceId}/analyses
+```
+
+### Evidence Intelligence
+
+```http
+POST /api/intelligence/evidence/{evidenceId}/runs
+POST /api/intelligence/evidence/{evidenceId}/runs/regenerate
+
+GET  /api/intelligence/runs/{runId}
+GET  /api/intelligence/evidence/{evidenceId}/runs/latest
+GET  /api/intelligence/evidence/{evidenceId}/runs
+GET  /api/intelligence/runs/{runId}/entities
+GET  /api/intelligence/runs/{runId}/timeline
+```
+
+Supported intelligence query parameters include:
+
+```text
+Run history:
+page
+size
+
+Entities:
+entityType
+page
+size
+
+Timeline:
+certainty
+temporalPrecision
+page
+size
+```
+
+### Investigator Notes
+
+```http
+POST   /api/cases/{caseId}/notes
+GET    /api/cases/{caseId}/notes
+PUT    /api/notes/{noteId}
+DELETE /api/notes/{noteId}
+```
+
+### Final Case Report
+
+```http
+GET /api/cases/{caseId}/report
 ```
 
 All endpoints except the explicitly public routes require authentication.
@@ -916,7 +1173,130 @@ GET /api/ai/evidence/{evidenceId}/analyses?page=0&size=10
 Authorization: Bearer <token>
 ```
 
-Maximum history page size: `50`.
+Maximum analysis-history page size: `50`.
+
+### Generate First Intelligence Run
+
+```http
+POST /api/intelligence/evidence/{evidenceId}/runs
+Authorization: Bearer <token>
+```
+
+The evidence must be owned, integrity-verified and successfully processed.
+
+### Regenerate Intelligence
+
+```http
+POST /api/intelligence/evidence/{evidenceId}/runs/regenerate
+Authorization: Bearer <token>
+```
+
+Creates a new run and preserves previous completed and failed runs.
+
+### Retrieve One Intelligence Run
+
+```http
+GET /api/intelligence/runs/{runId}
+Authorization: Bearer <token>
+```
+
+Returns run metadata, extracted entities and timeline events.
+
+### Retrieve Latest Intelligence Run
+
+```http
+GET /api/intelligence/evidence/{evidenceId}/runs/latest
+Authorization: Bearer <token>
+```
+
+### Retrieve Intelligence History
+
+```http
+GET /api/intelligence/evidence/{evidenceId}/runs?page=0&size=10
+Authorization: Bearer <token>
+```
+
+### Filter Run Entities
+
+```http
+GET /api/intelligence/runs/{runId}/entities?entityType=EMAIL_ADDRESS&page=0&size=20
+Authorization: Bearer <token>
+```
+
+### Filter Timeline Events
+
+```http
+GET /api/intelligence/runs/{runId}/timeline?certainty=OBSERVED&temporalPrecision=DATE_TIME&page=0&size=20
+Authorization: Bearer <token>
+```
+
+### Create Investigator Note
+
+```http
+POST /api/cases/{caseId}/notes
+Authorization: Bearer <token>
+Content-Type: application/json
+```
+
+```json
+{
+  "content": "Priority finding requires independent verification.",
+  "pinned": true
+}
+```
+
+### Update Investigator Note
+
+```http
+PUT /api/notes/{noteId}
+Authorization: Bearer <token>
+Content-Type: application/json
+```
+
+```json
+{
+  "content": "Updated investigator note after document review.",
+  "pinned": false
+}
+```
+
+### List Investigator Notes
+
+```http
+GET /api/cases/{caseId}/notes
+Authorization: Bearer <token>
+```
+
+Pinned notes are returned before unpinned notes.
+
+### Delete Investigator Note
+
+```http
+DELETE /api/notes/{noteId}
+Authorization: Bearer <token>
+```
+
+### Generate Final Case Report
+
+```http
+GET /api/cases/{caseId}/report
+Authorization: Bearer <token>
+```
+
+The report contains:
+
+```text
+investigationCase
+evidence
+analyses
+entities
+timeline
+notes
+generatedAt
+disclaimer
+```
+
+The report is assembled from saved database data and does not invoke the AI provider.
 
 ---
 
@@ -1056,6 +1436,7 @@ Prompt resources:
 ```text
 src/main/resources/prompts/evidence-preview-user.st
 src/main/resources/prompts/evidence-analysis-user.st
+src/main/resources/prompts/evidence-intelligence-user.st
 ```
 
 ---
@@ -1240,6 +1621,151 @@ This avoids holding a database transaction during a network request and preserve
 
 ---
 
+## Evidence Intelligence Lifecycle
+
+### `PENDING`
+
+The intelligence-run record has been created before the longer extraction workflow begins.
+
+### `PROCESSING`
+
+Deterministic extraction, prompt construction, provider processing and validation are in progress.
+
+### `COMPLETED`
+
+Validated entities and timeline events were stored successfully.
+
+### `FAILED`
+
+The attempt failed due to provider, conversion, validation or unexpected processing failure.
+
+Only a safe application-level failure message is stored. Previous runs are preserved.
+
+### Generation Rules
+
+Initial generation:
+
+```http
+POST /api/intelligence/evidence/{evidenceId}/runs
+```
+
+- Allowed only when no previous intelligence run exists for that evidence.
+- Requires owned, processed evidence with a SHA-256 baseline.
+- Rechecks integrity before generation.
+
+Regeneration:
+
+```http
+POST /api/intelligence/evidence/{evidenceId}/runs/regenerate
+```
+
+- Allowed after at least one previous run exists.
+- Creates a new run ID.
+- Preserves previous completed and failed runs.
+- Rejects a second active request while a run is `PENDING` or `PROCESSING`.
+
+---
+
+## Entity and Timeline Model
+
+### Entity Data
+
+Each extracted entity may include:
+
+```text
+entityId
+entityType
+displayValue
+normalizedValue
+contextSnippet
+confidence
+occurrenceCount
+firstCharacterOffset
+lastCharacterOffset
+```
+
+Deterministic and AI-assisted candidates are combined using normalised keys so duplicate values are not repeatedly stored within the same run.
+
+### Timeline Data
+
+Each timeline event may include:
+
+```text
+eventId
+sequenceNumber
+title
+description
+temporalExpression
+normalizedDateTime
+temporalPrecision
+certainty
+contextSnippet
+involvedEntities
+```
+
+Timeline events are returned chronologically where a normalised date/time exists. Undated or unresolved events are placed after dated events in the final report.
+
+---
+
+## Investigator Notes
+
+Notes are manual investigator-authored records and are not generated by the AI provider.
+
+Rules:
+
+- The case must belong to the authenticated investigator.
+- The author is resolved from the JWT subject and database user.
+- Content must not be blank.
+- Content must not exceed 5,000 characters.
+- Pinned notes are returned first.
+- Newer notes appear first within pinned and unpinned groups.
+- Updates use optimistic locking.
+- Missing and unowned notes return a safe `404`.
+
+---
+
+## Final Case Report
+
+Endpoint:
+
+```http
+GET /api/cases/{caseId}/report
+```
+
+The service first verifies case ownership and then aggregates safe response DTOs.
+
+Ordering:
+
+```text
+Evidence  → uploadedAt ascending
+Analyses  → higher risk first
+Entities  → entity type and normalised value
+Timeline  → chronological, undated last
+Notes     → pinned first, then newest
+```
+
+Mandatory disclaimer:
+
+```text
+AI-generated findings are investigative aids and must be independently verified.
+```
+
+The Day 10 backend report is JSON. Browser printing and presentation belong to the frontend phase; direct PDF generation is optional after the MVP.
+
+The report never exposes:
+
+```text
+storagePath
+storageRelativePath
+passwordHash
+JWT claims
+accessToken
+raw provider credentials
+internal exception details
+```
+
+---
+
 ## Security Protections
 
 ### Authentication
@@ -1249,11 +1775,20 @@ Protected APIs require a valid JWT.
 ### Ownership
 
 ```text
-Analysis
-→ Evidence
+Authenticated user
 → Investigation case
-→ Authenticated owner
+→ Evidence
+→ AI analysis
+→ Intelligence run
+→ Extracted entities and timeline
+
+Authenticated user
+→ Investigation case
+→ Investigator notes
+→ Final report
 ```
+
+Repository and service lookups include the ownership path wherever data is retrieved through an external identifier. An unowned identifier is treated the same as a missing identifier.
 
 ### Secret Management
 
@@ -1267,19 +1802,19 @@ Secrets are stored as environment variables and must never be committed.
 - Case-specific directories
 - Internal paths hidden from API responses
 
+### Safe DTO Aggregation
+
+The report returns response DTOs rather than JPA entities. This prevents lazy relationships and internal persistence fields from being serialised accidentally.
+
 ### Safe Logging
 
 Logs do not intentionally include JWT values, Groq API keys, database passwords, evidence text, provider authorisation headers or complete provider error bodies.
 
 ### Mandatory Human Review
 
-Every AI preview and persistent AI analysis has:
+Every AI preview, persistent AI analysis and intelligence run keeps human review enabled.
 
-```text
-humanReviewRequired = true
-```
-
-The model cannot disable human review.
+The final report also includes the mandatory independent-verification disclaimer.
 
 ---
 
@@ -1293,19 +1828,25 @@ TraceLens currently handles:
 - Invalid pagination and sorting with `400`
 - Invalid evidence files with `400`
 - Evidence-integrity mismatches with `400`
-- Unprocessed evidence analysis with `400`
-- Oversized AI input with `400`
+- Unprocessed evidence analysis or intelligence generation with `400`
+- Oversized AI or intelligence input with `400`
 - Duplicate initial analysis with `400`
-- Regeneration without history with `400`
+- Analysis regeneration without history with `400`
 - Concurrent analysis request with `400`
+- Duplicate initial intelligence generation with `400`
+- Intelligence regeneration without history with `400`
+- Concurrent intelligence-run request with `400`
+- Blank note content with `400`
+- Note content over 5,000 characters with `400`
 - Invalid credentials with `401`
 - Missing or invalid JWT with `401`
 - Disabled account with `403`
-- Missing or unowned resources with `404`
+- Missing or unowned cases, evidence, analyses, intelligence runs, notes and reports with `404`
 - Duplicate data with `409`
+- Optimistic or database conflicts with `409`
 - Oversized uploads with `413`
 - Unprocessable evidence content with `422`
-- Invalid structured AI output with `502`
+- Invalid structured AI or intelligence output with `502`
 - Unavailable AI provider with `503`
 - Evidence-storage failure with `500`
 - Unexpected application failure with `500`
@@ -1324,39 +1865,39 @@ TraceLens currently handles:
 7. Generate the first persistent AI analysis
 8. Retrieve the analysis by ID
 9. Retrieve the latest analysis
-10. Retrieve paginated history
+10. Retrieve paginated analysis history
 11. Regenerate the analysis
 12. Confirm the previous analysis remains unchanged
-13. Confirm only one concurrent request can start
+13. Confirm only one concurrent analysis request can start
+14. Generate the first intelligence run
+15. Retrieve the intelligence run by ID
+16. Retrieve the latest intelligence run
+17. Retrieve paginated intelligence history
+18. Filter entities by entity type
+19. Filter timeline events by certainty and temporal precision
+20. Regenerate intelligence
+21. Confirm previous intelligence runs remain unchanged
+22. Confirm only one concurrent intelligence request can start
+23. Create an unpinned investigator note
+24. Create a pinned investigator note
+25. Confirm pinned-first ordering
+26. Update note content and pin state
+27. Confirm blank and oversized notes are rejected
+28. Delete a note and confirm a second deletion returns 404
+29. Generate the final case report
+30. Verify case, evidence, analysis, entity, timeline and note counts
+31. Verify timeline order and pinned-note order
+32. Verify generatedAt and the exact disclaimer
+33. Confirm no storage path, password hash, token or internal field is present
+34. Confirm missing and unowned report access returns 404
+35. Confirm an unauthenticated report request returns 401
 ```
+
+All protected operations in a complete flow must use the same authenticated owner.
 
 ---
 
 ## Planned Features
-
-### Day 9 — Entity and Timeline Extraction
-
-- Persistent extracted-entity records
-- People and organisations
-- Email addresses
-- Phone numbers
-- URLs
-- IP addresses
-- Dates and times
-- Monetary values
-- Entity confidence and source support
-- Timeline-event extraction
-- Event descriptions and involved entities
-- Entity and timeline retrieval APIs
-- Deduplication and ownership enforcement
-
-### Day 10 — Investigator Notes and Reports
-
-- Investigator notes
-- Notes CRUD
-- Case-level report aggregation
-- Evidence and AI-result linking
-- Report-generation API
 
 ### Day 11 — Dashboard Backend
 
@@ -1388,7 +1929,9 @@ TraceLens currently handles:
 - Extracted-text viewer
 - AI-analysis viewer
 - Entity and timeline interface
-- Notes and reports
+- Investigator notes
+- Final report screen
+- Browser printing with print CSS
 
 ### Day 14 — Testing and Documentation
 
@@ -1444,9 +1987,15 @@ Sensitive provider logs
 
 TraceLens AI is an educational and portfolio project.
 
-AI-generated summaries, classifications, findings and recommendations must be treated as investigative assistance only.
+AI-generated previews, summaries, classifications, findings, recommendations, extracted contextual entities and timeline interpretations must be treated as investigative assistance only.
 
-They must be independently reviewed and verified before use in legal, disciplinary, financial, employment, compliance or security decisions.
+The exact report warning is:
+
+```text
+AI-generated findings are investigative aids and must be independently verified.
+```
+
+All AI-assisted output must be independently reviewed and verified before use in legal, disciplinary, financial, employment, compliance or security decisions.
 
 Uploaded test evidence must not contain real confidential, privileged, personal or legally restricted information.
 
