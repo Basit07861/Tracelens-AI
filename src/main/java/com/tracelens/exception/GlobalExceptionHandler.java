@@ -433,6 +433,31 @@ public class GlobalExceptionHandler {
                 .body(response);
     }
 
+    /*
+     * Missing and unowned notes return the same 404 response.
+     * This prevents the API from revealing whether a note
+     * belongs to another investigator.
+     */
+    @ExceptionHandler(NoteNotFoundException.class)
+    public ResponseEntity<ErrorResponse>
+            handleNoteNotFoundException(
+
+                    NoteNotFoundException exception,
+                    HttpServletRequest request
+            ) {
+
+        ErrorResponse response = createErrorResponse(
+                HttpStatus.NOT_FOUND,
+                exception.getMessage(),
+                request,
+                Map.of()
+        );
+
+        return ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
+                .body(response);
+    }
+
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<ErrorResponse>
             handleDataIntegrityViolation(
