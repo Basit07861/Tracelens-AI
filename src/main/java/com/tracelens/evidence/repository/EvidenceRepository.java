@@ -8,6 +8,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import com.tracelens.evidence.entity.Evidence;
+import com.tracelens.evidence.entity.EvidenceStatus;
 
 public interface EvidenceRepository
         extends JpaRepository<Evidence, Long> {
@@ -40,6 +41,10 @@ public interface EvidenceRepository
                     Pageable pageable
             );
 
+    /*
+     * Used by the Day 10 final case report.
+     * Returns owned evidence in chronological upload order.
+     */
     List<Evidence>
             findAllByInvestigationCaseIdAndInvestigationCaseOwnerEmailIgnoreCaseOrderByUploadedAtAsc(
                     Long caseId,
@@ -49,5 +54,17 @@ public interface EvidenceRepository
     long countByInvestigationCaseIdAndInvestigationCaseOwnerEmailIgnoreCase(
             Long caseId,
             String ownerEmail
+    );
+
+    /*
+     * Day 11 dashboard queries.
+     */
+    long countByInvestigationCaseOwnerEmailIgnoreCase(
+            String ownerEmail
+    );
+
+    long countByInvestigationCaseOwnerEmailIgnoreCaseAndStatus(
+            String ownerEmail,
+            EvidenceStatus status
     );
 }

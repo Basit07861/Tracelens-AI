@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import com.tracelens.ai.entity.AiAnalysisStatus;
 import com.tracelens.ai.entity.AiEvidenceAnalysis;
+import com.tracelens.ai.entity.AiPreviewRiskLevel;
 
 public interface AiEvidenceAnalysisRepository
         extends JpaRepository<AiEvidenceAnalysis, Long> {
@@ -50,5 +51,10 @@ public interface AiEvidenceAnalysisRepository
     long countByEvidenceIdAndEvidenceInvestigationCaseOwnerEmailIgnoreCase(
             Long evidenceId,
             String ownerEmail
+    );
+
+    long countByEvidenceInvestigationCaseOwnerEmailIgnoreCaseAndRiskLevel(
+            String ownerEmail,
+            AiPreviewRiskLevel riskLevel
     );
 }
