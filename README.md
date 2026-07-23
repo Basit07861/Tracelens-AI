@@ -17,6 +17,7 @@ It enables authorised investigators to:
 - Retrieve intelligence history and safely regenerate intelligence runs
 - Create, edit, pin and delete investigator notes
 - Generate one aggregated case report containing saved case, evidence, analysis, intelligence and note data
+- View owner-restricted dashboard analytics for case, evidence, processing and risk summaries
 
 > AI-generated output is investigative assistance only. It is not legal proof, a final conclusion, or a substitute for independent human review.
 
@@ -24,9 +25,11 @@ It enables authorised investigators to:
 
 ## Current Status
 
-The backend implementation is complete through **Day 10** of the project plan.
+The backend implementation is complete through **Day 11** of the project plan.
 
 **Backend MVP status: complete.**
+
+**Dashboard analytics milestone: complete.**
 
 Implemented so far:
 
@@ -49,6 +52,11 @@ Implemented so far:
 - Investigator-note CRUD with pinning, validation and optimistic locking
 - Secure aggregated case-report generation
 - Report ordering, generation timestamp and mandatory AI-verification disclaimer
+- Authenticated dashboard analytics using database aggregation queries
+- Owner-restricted case totals, status counts and priority breakdowns
+- Total and processed evidence metrics
+- HIGH-risk analysis count
+- Up to five recently updated case summaries
 - Safe error handling, ownership enforcement and internal-field protection across the completed workflow
 
 ---
@@ -65,7 +73,7 @@ Implemented so far:
 - Protected endpoints
 - Authenticated user lookup
 - Disabled-account handling
-- Ownership enforcement for cases, evidence, analyses, intelligence runs, notes and reports
+- Ownership enforcement for cases, evidence, analyses, intelligence runs, notes, reports and dashboard analytics
 - Missing and unowned resources return the same safe not-found response
 - Environment-based secret management
 - Internal filesystem paths and security-sensitive fields are excluded from API DTOs
@@ -221,6 +229,24 @@ Implemented so far:
 - Safe DTO-only output
 - No storage paths, password hashes, JWT claims, access tokens or internal exception details
 
+### Dashboard Analytics
+
+- Secure endpoint: `GET /api/dashboard`
+- JWT-authenticated and owner-restricted statistics
+- Total investigation-case count
+- Separate `OPEN`, `IN_PROGRESS`, `COMPLETED` and `ARCHIVED` case counts
+- Complete case-status breakdown for charts
+- Complete `LOW`, `MEDIUM`, `HIGH` and `CRITICAL` priority breakdown
+- Total evidence count
+- Successfully processed evidence count
+- Stored AI-analysis count with `HIGH` risk
+- Up to five recently updated case summaries
+- Recent cases ordered by `updatedAt` descending and then `id` descending
+- Database-level count queries instead of loading complete tables into Java
+- Existing safe `CaseResponse` DTOs used for recent-case output
+- No Groq request or new AI processing during dashboard retrieval
+- Missing authentication returns `401 Unauthorized`
+
 ---
 
 ## Development Progress
@@ -365,6 +391,30 @@ Implemented so far:
 - Prevented internal storage and security fields from leaking
 - Completed the backend MVP through Day 10
 
+### Day 11 — Dashboard and Analytics APIs
+
+- Added `StatusCount`, `PriorityCount` and `DashboardResponse` DTOs
+- Added owner-restricted case-count repository queries
+- Added case counts by `CaseStatus`
+- Added case counts by `CasePriority`
+- Added total and processed evidence count queries
+- Added HIGH-risk AI-analysis count query
+- Preserved Day 10 ordered evidence retrieval for final reports
+- Added `DashboardService`
+- Added `DashboardController`
+- Added authenticated `GET /api/dashboard`
+- Used the JWT subject as the owner identity
+- Returned all status and priority categories, including zero-count categories
+- Returned up to five recently updated cases
+- Ordered recent cases by `updatedAt` descending and `id` descending
+- Kept dashboard aggregation inside MySQL through Spring Data count queries
+- Verified that case-status totals equal the overall case count
+- Verified that priority totals equal the overall case count
+- Verified total and processed evidence metrics
+- Verified recent-case retrieval and the five-item limit
+- Verified unauthenticated dashboard access returns `401`
+- Completed the backend implementation through Day 11
+
 ---
 
 ## Technology Stack
@@ -468,6 +518,16 @@ com.tracelens
 ├── common
 │   ├── ApiResponse.java
 │   └── PageResponse.java
+│
+├── dashboard
+│   ├── controller
+│   │   └── DashboardController.java
+│   ├── dto
+│   │   ├── DashboardResponse.java
+│   │   ├── PriorityCount.java
+│   │   └── StatusCount.java
+│   └── service
+│       └── DashboardService.java
 │
 ├── evidence
 │   ├── config
@@ -1052,6 +1112,12 @@ DELETE /api/notes/{noteId}
 GET /api/cases/{caseId}/report
 ```
 
+### Dashboard Analytics
+
+```http
+GET /api/dashboard
+```
+
 All endpoints except the explicitly public routes require authentication.
 
 ---
@@ -1297,6 +1363,79 @@ disclaimer
 ```
 
 The report is assembled from saved database data and does not invoke the AI provider.
+
+### Retrieve Dashboard Analytics
+
+```http
+GET /api/dashboard
+Authorization: Bearer <token>
+```
+
+Example response:
+
+```json
+{
+  "success": true,
+  "message": "Dashboard analytics retrieved successfully",
+  "data": {
+    "totalCases": 6,
+    "openCases": 2,
+    "inProgressCases": 2,
+    "completedCases": 1,
+    "archivedCases": 1,
+    "totalEvidence": 12,
+    "processedEvidence": 9,
+    "highRiskAnalyses": 3,
+    "casesByStatus": [
+      {
+        "status": "OPEN",
+        "count": 2
+      },
+      {
+        "status": "IN_PROGRESS",
+        "count": 2
+      },
+      {
+        "status": "COMPLETED",
+        "count": 1
+      },
+      {
+        "status": "ARCHIVED",
+        "count": 1
+      }
+    ],
+    "casesByPriority": [
+      {
+        "priority": "LOW",
+        "count": 1
+      },
+      {
+        "priority": "MEDIUM",
+        "count": 2
+      },
+      {
+        "priority": "HIGH",
+        "count": 2
+      },
+      {
+        "priority": "CRITICAL",
+        "count": 1
+      }
+    ],
+    "recentlyUpdatedCases": []
+  },
+  "timestamp": "2026-07-23T11:00:00Z"
+}
+```
+
+Dashboard rules:
+
+- Every metric is restricted to the authenticated investigator.
+- The client does not supply an owner ID.
+- The service uses the JWT subject as the normalised owner email.
+- The service executes database count queries.
+- At most five recently updated cases are returned.
+- The endpoint does not invoke Groq or generate new AI output.
 
 ---
 
@@ -1766,6 +1905,71 @@ internal exception details
 
 ---
 
+## Dashboard Analytics Design
+
+Endpoint:
+
+```http
+GET /api/dashboard
+```
+
+The dashboard is a read-only backend aggregation endpoint. It does not create or modify cases, evidence, analyses or intelligence records.
+
+### Response Fields
+
+```text
+totalCases
+openCases
+inProgressCases
+completedCases
+archivedCases
+totalEvidence
+processedEvidence
+highRiskAnalyses
+casesByStatus
+casesByPriority
+recentlyUpdatedCases
+```
+
+### Aggregation Rules
+
+```text
+Case totals
+→ Count only cases owned by the authenticated investigator
+
+Evidence totals
+→ Count only evidence belonging to the investigator's cases
+
+Processed evidence
+→ Count evidence where status = PROCESSED
+
+High-risk analyses
+→ Count stored analysis records where riskLevel = HIGH
+  through the analysis → evidence → case → owner path
+
+Recently updated cases
+→ Maximum 5
+→ updatedAt descending
+→ id descending as the tie-breaker
+```
+
+All status categories and all priority categories are returned even when their count is zero. This provides a stable response shape for frontend cards and charts.
+
+### Efficiency
+
+The dashboard service uses Spring Data count queries and one small paginated recent-case query. It does not retrieve every case, evidence record or analysis record and count them in Java.
+
+### Security
+
+- Authentication is mandatory.
+- Ownership comes from the JWT subject.
+- The client never sends an owner ID.
+- Another investigator's data is excluded at the repository-query level.
+- Recent cases are returned through `CaseResponse`, not raw JPA entities.
+- The endpoint does not expose evidence text, file paths, password hashes, tokens or AI-provider credentials.
+
+---
+
 ## Security Protections
 
 ### Authentication
@@ -1786,6 +1990,10 @@ Authenticated user
 → Investigation case
 → Investigator notes
 → Final report
+
+Authenticated user
+→ Dashboard analytics
+→ Owned case, evidence and analysis metrics only
 ```
 
 Repository and service lookups include the ownership path wherever data is retrieved through an external identifier. An unowned identifier is treated the same as a missing identifier.
@@ -1804,7 +2012,7 @@ Secrets are stored as environment variables and must never be committed.
 
 ### Safe DTO Aggregation
 
-The report returns response DTOs rather than JPA entities. This prevents lazy relationships and internal persistence fields from being serialised accidentally.
+The report and dashboard return response DTOs rather than exposing JPA entities directly. This prevents lazy relationships and internal persistence fields from being serialised accidentally.
 
 ### Safe Logging
 
@@ -1891,6 +2099,14 @@ TraceLens currently handles:
 33. Confirm no storage path, password hash, token or internal field is present
 34. Confirm missing and unowned report access returns 404
 35. Confirm an unauthenticated report request returns 401
+36. Retrieve the authenticated dashboard
+37. Verify totalCases equals the sum of all case-status counts
+38. Verify totalCases equals the sum of all case-priority counts
+39. Verify totalEvidence and processedEvidence against the database
+40. Verify recentlyUpdatedCases contains at most five owned cases
+41. Verify recentlyUpdatedCases is ordered by updatedAt descending
+42. Confirm dashboard retrieval does not call the AI provider
+43. Confirm an unauthenticated dashboard request returns 401
 ```
 
 All protected operations in a complete flow must use the same authenticated owner.
@@ -1898,15 +2114,6 @@ All protected operations in a complete flow must use the same authenticated owne
 ---
 
 ## Planned Features
-
-### Day 11 — Dashboard Backend
-
-- Case statistics
-- Evidence statistics
-- Risk distribution
-- Recent activity
-- Processing summaries
-- Dashboard API
 
 ### Day 12 — React Frontend Foundation
 
