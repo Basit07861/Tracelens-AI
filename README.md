@@ -1,6 +1,6 @@
 # TraceLens AI
 
-TraceLens AI is an AI-powered digital evidence analysis and investigation platform built with Spring Boot.
+TraceLens AI is an AI-powered digital evidence analysis and investigation platform built with Spring Boot, React and MySQL.
 
 It enables authorised investigators to:
 
@@ -14,10 +14,10 @@ It enables authorised investigators to:
 - Classify preliminary risk levels and record evidence-supported findings
 - Extract structured entities using deterministic and AI-assisted methods
 - Build persistent investigation timelines from processed evidence
-- Retrieve intelligence history and safely regenerate intelligence runs
 - Create, edit, pin and delete investigator notes
-- Generate one aggregated case report containing saved case, evidence, analysis, intelligence and note data
-- View owner-restricted dashboard analytics for case, evidence, processing and risk summaries
+- Generate aggregated investigation reports
+- View owner-restricted dashboard analytics
+- Access the platform through a responsive forensic investigation interface
 
 > AI-generated output is investigative assistance only. It is not legal proof, a final conclusion, or a substitute for independent human review.
 
@@ -25,39 +25,76 @@ It enables authorised investigators to:
 
 ## Current Status
 
-The backend implementation is complete through **Day 11** of the project plan.
+The project implementation is complete through **Day 12** of the development plan.
 
-**Backend MVP status: complete.**
+### Completion Status
 
-**Dashboard analytics milestone: complete.**
+```text
+Backend MVP                         Complete
+Dashboard and analytics backend     Complete
+React frontend foundation           Complete
+Authentication interface            Complete
+Protected routing                   Complete
+Live dashboard integration          Complete
+Case-management interface           Complete
+Evidence and AI workspace           Planned for Day 13
+Automated testing and OpenAPI        Planned for Day 14
+Deployment and presentation         Planned for Day 15
+```
 
-Implemented so far:
+### Implemented So Far
 
-- Spring Boot backend foundation and MySQL integration
-- Registration, login, JWT authentication and BCrypt password hashing
-- Investigation-case CRUD, search, filtering, pagination and ownership enforcement
-- Secure evidence upload, listing, metadata retrieval, download and deletion
-- TXT, CSV, JSON and PDF evidence support
-- SHA-256 hashing, duplicate detection and integrity verification
-- Persistent extracted-text storage with controlled processing states
-- Structured AI previews using Spring AI and Groq
-- Persistent AI evidence analyses with history, regeneration and concurrency protection
+#### Backend
+
+- Spring Boot backend foundation
+- MySQL database integration
+- Registration and login
+- BCrypt password hashing
+- JWT authentication
+- Stateless Spring Security
+- Investigation-case CRUD
+- Search, filtering, pagination and sorting
+- Owner-restricted case access
+- Secure digital-evidence storage
+- SHA-256 hashing and integrity verification
+- Duplicate evidence detection
+- TXT, CSV, JSON and PDF extraction
+- Temporary AI previews
+- Persistent AI analyses
+- AI-analysis history and regeneration
 - Persistent evidence-intelligence runs
-- Hybrid deterministic and AI-assisted entity extraction
-- Structured timeline-event extraction with entity links
-- Direct, latest and paginated intelligence-run retrieval
-- Paginated entity and timeline retrieval with optional filters
-- Intelligence regeneration with previous runs preserved
-- Concurrent intelligence-run protection
-- Investigator-note CRUD with pinning, validation and optimistic locking
-- Secure aggregated case-report generation
-- Report ordering, generation timestamp and mandatory AI-verification disclaimer
-- Authenticated dashboard analytics using database aggregation queries
-- Owner-restricted case totals, status counts and priority breakdowns
-- Total and processed evidence metrics
-- HIGH-risk analysis count
-- Up to five recently updated case summaries
-- Safe error handling, ownership enforcement and internal-field protection across the completed workflow
+- Deterministic and AI-assisted entity extraction
+- Structured timeline generation
+- Investigator-note CRUD
+- Aggregated final-case reports
+- Dashboard analytics using database aggregation
+- Configurable frontend CORS support
+
+#### Frontend
+
+- React frontend created with Vite
+- Reusable Axios API client
+- JWT request interceptor
+- Local authentication-session handling
+- Protected routes
+- Investigator login page
+- Investigator registration page
+- Client-side registration validation
+- Unique forensic dossier visual design
+- Responsive application layout
+- Sidebar and mobile navigation
+- Owner-restricted live analytics dashboard
+- Case-status and priority registers
+- Recently updated case files
+- Investigation-case listing
+- Case search
+- Status and priority filters
+- Case pagination
+- New-case intake form
+- Case creation and redirect flow
+- Case overview and metadata page
+- Loading, empty, error and retry states
+- Responsive desktop and mobile styling
 
 ---
 
@@ -70,30 +107,52 @@ Implemented so far:
 - BCrypt password hashing
 - JWT access tokens
 - Stateless Spring Security
-- Protected endpoints
+- Protected backend endpoints
+- Protected React routes
 - Authenticated user lookup
 - Disabled-account handling
-- Ownership enforcement for cases, evidence, analyses, intelligence runs, notes, reports and dashboard analytics
+- Local JWT-session persistence
+- Automatic JWT attachment through Axios
+- Automatic local-session cleanup on `401`
+- Ownership enforcement for:
+  - Investigation cases
+  - Evidence
+  - AI analyses
+  - Intelligence runs
+  - Entities
+  - Timeline events
+  - Investigator notes
+  - Final reports
+  - Dashboard analytics
 - Missing and unowned resources return the same safe not-found response
-- Environment-based secret management
 - Internal filesystem paths and security-sensitive fields are excluded from API DTOs
+- Environment-based secret management
 
 ### Investigation Cases
 
-- Create, read, update and delete cases
+- Create, retrieve, update and delete cases
 - Unique human-readable case numbers
 - Case status management
 - Priority management
 - Keyword search
-- Status and priority filtering
+- Status filtering
+- Priority filtering
 - Pagination
 - Controlled sorting
-- Owner-restricted access
+- JWT-derived case ownership
+- Responsive case-file cards
+- Case overview and metadata interface
+- New-case intake workflow
+- Server and client-side validation
 
 ### Digital Evidence
 
-- Upload evidence using multipart requests
-- Supported formats: TXT, CSV, JSON and PDF
+- Multipart evidence upload
+- Supported formats:
+  - TXT
+  - CSV
+  - JSON
+  - PDF
 - Extension and MIME-type validation
 - Maximum file-size validation
 - Empty-file rejection
@@ -112,18 +171,25 @@ Implemented so far:
 - Per-case duplicate detection
 - Same file allowed in separate cases
 - Integrity verification endpoint
-- `VERIFIED`, `MISMATCH` and `NOT_VERIFIED` states
+- Integrity states:
+  - `NOT_VERIFIED`
+  - `VERIFIED`
+  - `MISMATCH`
 - Original baseline hash is never replaced
-- Evidence integrity is rechecked before extraction, analysis and intelligence generation
+- Integrity rechecked before extraction, analysis and intelligence generation
 
 ### Evidence Text Extraction
 
 - Strict UTF-8 TXT processing
 - CSV parsing with quoted-field support
-- JSON flattening with Jackson
+- JSON flattening using Jackson
 - PDF extraction using Apache PDFBox
-- Page-by-page PDF extraction
-- Processing lifecycle: `UPLOADED`, `PROCESSING`, `PROCESSED`, `FAILED`
+- Page-by-page PDF processing
+- Processing states:
+  - `UPLOADED`
+  - `PROCESSING`
+  - `PROCESSED`
+  - `FAILED`
 - Character, row, page and nesting limits
 - Safe extraction-error persistence
 - Extracted-text retrieval endpoint
@@ -134,21 +200,25 @@ Implemented so far:
 - Groq through an OpenAI-compatible endpoint
 - Configurable AI model
 - Resource-based prompt templates
-- Structured Java-record output
-- AI connectivity endpoint
+- Structured Java-record responses
+- Protected AI-connectivity endpoint
 - Prompt-injection resistance instructions
-- Application-level validation
+- Application-level output validation
 - Provider retry handling
 - Semantic correction attempts
 - Safe `502` and `503` responses
-- Human review always required
+- Mandatory human review
 
 ### Persistent AI Evidence Analysis
 
-- Persistent analysis records in MySQL
-- Lifecycle states: `PENDING`, `PROCESSING`, `COMPLETED`, `FAILED`
-- Factual summary
-- Preliminary risk level
+- Persistent AI-analysis records in MySQL
+- Lifecycle states:
+  - `PENDING`
+  - `PROCESSING`
+  - `COMPLETED`
+  - `FAILED`
+- Factual summaries
+- Preliminary risk levels
 - Suspicious findings
 - Recommended investigative actions
 - Information-sufficiency result
@@ -168,10 +238,17 @@ Implemented so far:
 ### Evidence Intelligence and Timeline
 
 - Persistent intelligence runs linked to evidence
-- Lifecycle states: `PENDING`, `PROCESSING`, `COMPLETED`, `FAILED`
-- Methods: `DETERMINISTIC`, `AI`, `HYBRID`
+- Intelligence lifecycle states:
+  - `PENDING`
+  - `PROCESSING`
+  - `COMPLETED`
+  - `FAILED`
+- Extraction methods:
+  - `DETERMINISTIC`
+  - `AI`
+  - `HYBRID`
 - Hybrid deterministic and AI-assisted extraction
-- Entity types:
+- Supported entity types:
   - `PERSON`
   - `ORGANIZATION`
   - `EMAIL_ADDRESS`
@@ -182,70 +259,107 @@ Implemented so far:
   - `DATE_TIME`
   - `TIME`
   - `MONEY`
-- Normalised entity values for deduplication
-- Original display values and supporting context
-- Confidence, occurrence count and character offsets
-- Timeline titles, descriptions and source expressions
-- Normalised date/time values
-- Temporal precision and certainty
-- Links between timeline events and involved entities
+- Entity normalisation and deduplication
+- Original display values
+- Supporting context
+- Confidence values
+- Occurrence counts
+- Character offsets
+- Timeline titles and descriptions
+- Source temporal expressions
+- Normalised date and time values
+- Temporal precision
+- Event certainty
+- Links between events and involved entities
 - Direct and latest-run retrieval
 - Paginated run history
 - Filtered entity retrieval
 - Filtered timeline retrieval
-- Intelligence regeneration with previous runs preserved
+- Intelligence regeneration
+- Previous runs preserved
 - Concurrent-run protection
-- Evidence and case ownership enforcement
 
 ### Investigator Notes
 
 - Persistent notes linked to cases and authors
-- Create and list notes for owned cases
-- Update note content and pinned state
-- Delete owned notes
-- Maximum content length of 5,000 characters
+- Create and list notes
+- Edit note content
+- Pin and unpin notes
+- Delete notes
 - Blank-content rejection
+- Maximum length of 5,000 characters
 - Pinned notes displayed first
-- Newest notes displayed first within each pinned group
+- Newest notes displayed first within each group
 - Author resolved from the authenticated user
-- Optimistic locking through a version column
-- Safe `404` handling for missing and unowned notes
+- Optimistic locking
+- Safe not-found handling
 
 ### Aggregated Case Report
 
-- Secure endpoint: `GET /api/cases/{caseId}/report`
-- Ownership verified before aggregation
+- Secure endpoint:
+
+```http
+GET /api/cases/{caseId}/report
+```
+
+- Case ownership verification
 - Case summary
-- Evidence metadata ordered by upload time
+- Evidence metadata
 - Latest completed AI analyses
-- Latest completed intelligence output for each evidence item
+- Latest completed intelligence output
 - Aggregated extracted entities
-- Chronologically ordered timeline events
-- Investigator notes with pinned notes first
+- Chronologically ordered timeline
+- Investigator notes
 - Report-generation timestamp
-- Mandatory disclaimer:
-  - `AI-generated findings are investigative aids and must be independently verified.`
-- JSON response for the backend MVP
-- Safe DTO-only output
+- Mandatory verification disclaimer
+- DTO-only output
 - No storage paths, password hashes, JWT claims, access tokens or internal exception details
 
 ### Dashboard Analytics
 
-- Secure endpoint: `GET /api/dashboard`
-- JWT-authenticated and owner-restricted statistics
-- Total investigation-case count
-- Separate `OPEN`, `IN_PROGRESS`, `COMPLETED` and `ARCHIVED` case counts
-- Complete case-status breakdown for charts
-- Complete `LOW`, `MEDIUM`, `HIGH` and `CRITICAL` priority breakdown
+- Secure endpoint:
+
+```http
+GET /api/dashboard
+```
+
+- JWT-authenticated statistics
+- Owner-restricted database queries
+- Total case count
+- Case counts for:
+  - `OPEN`
+  - `IN_PROGRESS`
+  - `COMPLETED`
+  - `ARCHIVED`
+- Priority breakdown for:
+  - `LOW`
+  - `MEDIUM`
+  - `HIGH`
+  - `CRITICAL`
 - Total evidence count
-- Successfully processed evidence count
-- Stored AI-analysis count with `HIGH` risk
-- Up to five recently updated case summaries
-- Recent cases ordered by `updatedAt` descending and then `id` descending
-- Database-level count queries instead of loading complete tables into Java
-- Existing safe `CaseResponse` DTOs used for recent-case output
-- No Groq request or new AI processing during dashboard retrieval
-- Missing authentication returns `401 Unauthorized`
+- Processed evidence count
+- Stored HIGH-risk analysis count
+- Up to five recently updated cases
+- Database-level aggregation
+- No AI-provider request during dashboard retrieval
+
+### React Investigation Interface
+
+- Unique charcoal-and-amber forensic visual identity
+- Dossier-inspired login and registration pages
+- Investigation command-centre dashboard
+- Reusable protected application layout
+- Responsive sidebar and mobile menu
+- Investigator identity display
+- Session termination
+- Live dashboard metrics
+- Status-distribution register
+- Priority-distribution register
+- Recently updated case records
+- Case register with search and filters
+- New-case intake form
+- Case-details overview
+- Responsive loading, error and empty states
 
 ---
 
@@ -256,7 +370,7 @@ Implemented so far:
 - Initialised the Spring Boot Maven project
 - Configured MySQL and Spring Data JPA
 - Added environment-based credentials
-- Added reusable API response models
+- Added reusable API-response models
 - Added global exception handling
 - Added system and database status endpoint
 - Connected the project to GitHub
@@ -279,141 +393,172 @@ Implemented so far:
 - Connected cases to users
 - Added unique case numbers
 - Added case CRUD
-- Added status update endpoint
+- Added case-status update endpoint
 - Added search, filtering, pagination and sorting
 - Enforced case ownership
 
 ### Day 4 — Evidence Management
 
 - Added `Evidence`
-- Added upload, list, metadata, download and delete APIs
+- Added upload, listing, metadata, download and delete APIs
 - Added TXT, CSV, JSON and PDF upload support
 - Added safe file validation and storage
 - Added UUID stored filenames
 - Added case-specific evidence directories
 - Added path-traversal protection
-- Added transaction-safe file cleanup
+- Added transaction-safe cleanup
 
 ### Day 5 — Evidence Integrity
 
 - Added SHA-256 hashing
 - Added per-case duplicate detection
-- Added integrity status and verification timestamps
-- Added integrity verification endpoint
-- Tested modification and restoration
+- Added integrity state and verification timestamps
+- Added integrity-verification endpoint
+- Tested evidence modification and restoration
 - Preserved the original hash baseline
 
 ### Day 6 — Evidence Text Extraction
 
 - Added extracted-text persistence
 - Added processing states and timestamps
-- Added extractor strategy architecture
+- Added extractor-strategy architecture
 - Added TXT, CSV, JSON and PDF extractors
 - Added extraction safety limits
 - Added `422` handling for unprocessable content
-- Verified integrity before extraction
+- Added integrity verification before extraction
 
 ### Day 7 — Spring AI and Groq
 
 - Added Spring AI
-- Connected Groq using the OpenAI-compatible starter
+- Connected Groq through the OpenAI-compatible starter
 - Added configurable provider and model settings
 - Created a reusable `ChatClient`
-- Added a protected AI connectivity endpoint
+- Added a protected AI-connectivity endpoint
 - Added resource-based prompt templates
-- Added structured AI preview responses
+- Added structured AI-preview responses
 - Added risk classification
-- Added prompt-injection resistance instructions
+- Added prompt-injection resistance
 - Added response validation and semantic retry
-- Added safe AI error handling
-- Kept previews non-persistent
+- Added safe provider-error handling
+- Kept preview results non-persistent
 
 ### Day 8 — Persistent AI Analysis
 
 - Added persistent AI-analysis tables
 - Added analysis lifecycle states
-- Added summaries, risk, findings, actions and limitations
+- Added summaries, risks, findings, actions and limitations
 - Added provider, model, prompt and schema metadata
-- Added physical-evidence and extracted-text SHA-256 values
+- Added source hashes
 - Added token usage when available
 - Added safe failure persistence
-- Added persistent analysis generation
-- Added direct analysis retrieval
-- Added latest-analysis retrieval
+- Added initial analysis generation
+- Added direct and latest-analysis retrieval
 - Added paginated history
-- Added analysis regeneration
-- Preserved previous analysis attempts
+- Added regeneration
+- Preserved previous attempts
 - Added pessimistic locking
-- Prevented simultaneous analysis generation for the same evidence
+- Prevented simultaneous analysis generation
 
 ### Day 9 — Evidence Intelligence and Timeline
 
-- Added persistent evidence-intelligence runs
+- Added persistent intelligence runs
 - Added intelligence lifecycle and method enums
 - Added deterministic entity extraction
-- Added structured AI-assisted entity and timeline extraction
-- Combined deterministic and AI results through a hybrid workflow
+- Added structured AI-assisted extraction
+- Combined results using a hybrid workflow
 - Added entity normalisation and deduplication
-- Added entity context, confidence, occurrence counts and character offsets
-- Added timeline descriptions, temporal expressions and normalised dates
-- Added timeline certainty and temporal-precision values
-- Linked timeline events to involved entities
-- Added full intelligence-run retrieval
-- Added latest-run retrieval
-- Added paginated intelligence history
-- Added paginated and filtered entity retrieval
-- Added paginated and filtered timeline retrieval
-- Added intelligence regeneration
-- Preserved previous intelligence runs
-- Added source-analysis and source-hash metadata
+- Added context, confidence, occurrence counts and offsets
+- Added timeline descriptions and normalised dates
+- Added certainty and temporal precision
+- Linked events to entities
+- Added direct, latest and history retrieval
+- Added paginated entity and timeline APIs
+- Added regeneration
+- Preserved earlier runs
 - Added concurrent-run protection
-- Enforced ownership for every intelligence operation
+- Enforced ownership throughout the workflow
 
 ### Day 10 — Investigator Notes and Final Report
 
-- Added investigator-note persistence
-- Linked notes to investigation cases and authenticated authors
-- Added note creation and listing
-- Added note content and pin-state updates
-- Added note deletion
-- Added blank and 5,000-character validation
-- Added pinned-first and newest-first ordering
-- Added optimistic locking for note updates
-- Added secure note repository queries
-- Added centralised note-not-found handling
-- Added the aggregated case-report response DTO
-- Added the secure final-report service and endpoint
+- Added note persistence
+- Linked notes to cases and authenticated authors
+- Added note creation, listing, updating and deletion
+- Added pinning
+- Added validation
+- Added optimistic locking
+- Added secure repository queries
+- Added final-report DTOs
+- Added final-report service and endpoint
 - Aggregated case, evidence, analyses, entities, timeline and notes
-- Used the latest completed analysis and intelligence data
 - Added deterministic report ordering
-- Added report-generation timestamp
-- Added the mandatory AI-verification disclaimer
-- Prevented internal storage and security fields from leaking
-- Completed the backend MVP through Day 10
+- Added generation timestamp
+- Added mandatory verification disclaimer
+- Completed the backend MVP
 
 ### Day 11 — Dashboard and Analytics APIs
 
-- Added `StatusCount`, `PriorityCount` and `DashboardResponse` DTOs
-- Added owner-restricted case-count repository queries
-- Added case counts by `CaseStatus`
-- Added case counts by `CasePriority`
-- Added total and processed evidence count queries
-- Added HIGH-risk AI-analysis count query
-- Preserved Day 10 ordered evidence retrieval for final reports
+- Added dashboard response DTOs
+- Added owner-restricted count queries
+- Added case-status counts
+- Added case-priority counts
+- Added total and processed evidence counts
+- Added HIGH-risk analysis count
+- Added recently updated case retrieval
 - Added `DashboardService`
 - Added `DashboardController`
 - Added authenticated `GET /api/dashboard`
-- Used the JWT subject as the owner identity
-- Returned all status and priority categories, including zero-count categories
-- Returned up to five recently updated cases
-- Ordered recent cases by `updatedAt` descending and `id` descending
-- Kept dashboard aggregation inside MySQL through Spring Data count queries
-- Verified that case-status totals equal the overall case count
-- Verified that priority totals equal the overall case count
-- Verified total and processed evidence metrics
-- Verified recent-case retrieval and the five-item limit
-- Verified unauthenticated dashboard access returns `401`
-- Completed the backend implementation through Day 11
+- Used the JWT subject as owner identity
+- Returned zero-count categories
+- Limited recent cases to five
+- Used MySQL aggregation queries
+- Verified unauthenticated access returns `401`
+
+### Day 12 — React Frontend Foundation
+
+- Created the React frontend using Vite
+- Added Axios and React Router
+- Added `.env.example`
+- Ignored local frontend environment files
+- Added a reusable Axios API client
+- Added JWT request interception
+- Added unauthorised-session cleanup
+- Added authentication context
+- Added local user and token storage
+- Added protected routes
+- Added investigator login
+- Added investigator registration
+- Added client-side password validation
+- Added registration success and API-error messages
+- Added show/hide password controls
+- Added a unique forensic dossier design
+- Added the reusable TraceLens mark
+- Added responsive authentication pages
+- Added protected application layout
+- Added responsive sidebar navigation
+- Added mobile-menu handling
+- Added session termination
+- Connected the dashboard to `GET /api/dashboard`
+- Added live case and evidence metrics
+- Added status and priority registers
+- Added recently updated case records
+- Added dashboard loading, error and retry states
+- Added Spring Security CORS configuration
+- Allowed the local Vite development origin
+- Added configurable production frontend origins
+- Added browser preflight handling
+- Added case listing through `GET /api/cases`
+- Added keyword search
+- Added status and priority filters
+- Added pagination
+- Added responsive case-file cards
+- Added new-case intake
+- Added case creation through `POST /api/cases`
+- Added case-details overview through `GET /api/cases/{caseId}`
+- Added metadata and future Day 13 tabs
+- Verified login and dashboard integration
+- Verified case creation from the browser
+- Verified ESLint
+- Verified the frontend production build
 
 ---
 
@@ -432,6 +577,18 @@ Implemented so far:
 - Hibernate
 - MySQL
 - Maven
+
+### Frontend
+
+- React
+- Vite
+- React Router
+- Axios
+- JavaScript
+- JSX
+- CSS
+- Browser `localStorage`
+- Responsive forensic interface
 
 ### AI
 
@@ -460,6 +617,7 @@ Implemented so far:
 ### Development Tools
 
 - Eclipse / Spring Tools
+- Visual Studio Code
 - MySQL Workbench
 - Windows PowerShell
 - Git
@@ -468,231 +626,113 @@ Implemented so far:
 
 ---
 
+## Architecture
+
+```text
+React Frontend
+    │
+    │ HTTPS / JSON / Multipart
+    │ Authorization: Bearer JWT
+    ▼
+Spring Boot REST API
+    │
+    ├── Authentication and Security
+    ├── Investigation Cases
+    ├── Evidence Management
+    ├── Integrity Verification
+    ├── Text Extraction
+    ├── AI Analysis
+    ├── Entity and Timeline Intelligence
+    ├── Investigator Notes
+    ├── Reports
+    └── Dashboard Analytics
+          │
+          ├── MySQL
+          ├── Evidence Storage
+          └── Groq through Spring AI
+```
+
+---
+
 ## Project Structure
 
 ```text
-com.tracelens
-├── ai
-│   ├── config
-│   │   ├── AiAnalysisProperties.java
-│   │   ├── AiPreviewProperties.java
-│   │   └── TraceLensAiConfig.java
-│   ├── controller
-│   │   └── AiController.java
-│   ├── dto
-│   │   ├── AiEvidenceAnalysisContent.java
-│   │   ├── AiEvidenceAnalysisHistoryResponse.java
-│   │   ├── AiEvidenceAnalysisResponse.java
-│   │   ├── AiEvidencePreviewContent.java
-│   │   ├── AiEvidencePreviewResponse.java
-│   │   └── AiStatusResponse.java
-│   ├── entity
-│   │   ├── AiAnalysisRequestType.java
-│   │   ├── AiAnalysisStatus.java
-│   │   ├── AiConnectionStatus.java
-│   │   ├── AiEvidenceAnalysis.java
-│   │   └── AiPreviewRiskLevel.java
-│   ├── repository
-│   │   ├── AiEvidenceAnalysisLockRepository.java
-│   │   └── AiEvidenceAnalysisRepository.java
-│   └── service
-│       ├── AiEvidenceAnalysisService.java
-│       ├── AiEvidenceAnalysisStateService.java
-│       ├── AiEvidenceAnalysisTarget.java
-│       ├── AiEvidenceAnalysisValidator.java
-│       ├── AiEvidencePreviewService.java
-│       ├── AiEvidencePreviewValidator.java
-│       └── AiStatusService.java
+TraceLens-AI
+├── src
+│   └── main
+│       ├── java
+│       │   └── com
+│       │       └── tracelens
+│       │           ├── ai
+│       │           ├── auth
+│       │           ├── common
+│       │           ├── dashboard
+│       │           ├── evidence
+│       │           ├── exception
+│       │           ├── intelligence
+│       │           ├── investigation
+│       │           ├── note
+│       │           ├── report
+│       │           ├── security
+│       │           ├── system
+│       │           ├── user
+│       │           └── TracelensBackendApplication.java
+│       │
+│       └── resources
+│           ├── prompts
+│           │   ├── evidence-analysis-user.st
+│           │   ├── evidence-intelligence-user.st
+│           │   └── evidence-preview-user.st
+│           └── application.properties
 │
-├── auth
-│   ├── controller
-│   │   └── AuthController.java
-│   ├── dto
-│   │   ├── LoginRequest.java
-│   │   ├── LoginResponse.java
-│   │   ├── RegisterRequest.java
-│   │   └── UserResponse.java
-│   └── service
-│       └── AuthService.java
+├── frontend
+│   ├── public
+│   ├── src
+│   │   ├── api
+│   │   │   └── client.js
+│   │   ├── components
+│   │   │   ├── Layout.jsx
+│   │   │   ├── ProtectedRoute.jsx
+│   │   │   ├── TraceLensMark.jsx
+│   │   │   ├── case
+│   │   │   └── common
+│   │   ├── context
+│   │   │   ├── AuthContext.jsx
+│   │   │   ├── auth-context.js
+│   │   │   └── useAuth.js
+│   │   ├── pages
+│   │   │   ├── CaseDetailsPage.jsx
+│   │   │   ├── CasesPage.css
+│   │   │   ├── CasesPage.jsx
+│   │   │   ├── DashboardPage.css
+│   │   │   ├── DashboardPage.jsx
+│   │   │   ├── LoginPage.jsx
+│   │   │   ├── NewCasePage.jsx
+│   │   │   └── RegisterPage.jsx
+│   │   ├── App.jsx
+│   │   ├── index.css
+│   │   └── main.jsx
+│   ├── .env.example
+│   ├── eslint.config.js
+│   ├── index.html
+│   ├── package.json
+│   └── vite.config.js
 │
-├── common
-│   ├── ApiResponse.java
-│   └── PageResponse.java
-│
-├── dashboard
-│   ├── controller
-│   │   └── DashboardController.java
-│   ├── dto
-│   │   ├── DashboardResponse.java
-│   │   ├── PriorityCount.java
-│   │   └── StatusCount.java
-│   └── service
-│       └── DashboardService.java
-│
-├── evidence
-│   ├── config
-│   │   ├── EvidenceExtractionProperties.java
-│   │   └── EvidenceProperties.java
-│   ├── controller
-│   │   └── EvidenceController.java
-│   ├── dto
-│   │   ├── EvidenceExtractionResponse.java
-│   │   ├── EvidenceIntegrityResponse.java
-│   │   └── EvidenceResponse.java
-│   ├── entity
-│   │   ├── Evidence.java
-│   │   ├── EvidenceFileType.java
-│   │   ├── EvidenceIntegrityStatus.java
-│   │   └── EvidenceStatus.java
-│   ├── extraction
-│   │   ├── CsvEvidenceTextExtractor.java
-│   │   ├── EvidenceTextExtractor.java
-│   │   ├── EvidenceTextExtractorRegistry.java
-│   │   ├── JsonEvidenceTextExtractor.java
-│   │   ├── PdfEvidenceTextExtractor.java
-│   │   ├── TextExtractionSupport.java
-│   │   └── TxtEvidenceTextExtractor.java
-│   ├── repository
-│   │   └── EvidenceRepository.java
-│   ├── service
-│   │   ├── EvidenceFileValidator.java
-│   │   ├── EvidenceProcessingService.java
-│   │   ├── EvidenceProcessingStateService.java
-│   │   ├── EvidenceProcessingTarget.java
-│   │   └── EvidenceService.java
-│   └── storage
-│       ├── EvidenceFileResource.java
-│       ├── EvidenceStorageService.java
-│       └── StoredEvidenceFile.java
-│
-├── exception
-│   ├── AiResponseValidationException.java
-│   ├── AiServiceUnavailableException.java
-│   ├── CaseNotFoundException.java
-│   ├── DuplicateEmailException.java
-│   ├── DuplicateEvidenceException.java
-│   ├── ErrorResponse.java
-│   ├── EvidenceNotFoundException.java
-│   ├── EvidenceStorageException.java
-│   ├── EvidenceTextExtractionException.java
-│   ├── GlobalExceptionHandler.java
-│   ├── InvalidEvidenceFileException.java
-│   ├── InvalidRequestException.java
-│   ├── NoteNotFoundException.java
-│   └── UserNotFoundException.java
-│
-├── intelligence
-│   ├── config
-│   │   └── IntelligenceExtractionProperties.java
-│   ├── controller
-│   │   └── IntelligenceController.java
-│   ├── dto
-│   │   ├── EvidenceIntelligenceContent.java
-│   │   ├── EvidenceIntelligenceRunHistoryResponse.java
-│   │   ├── EvidenceIntelligenceRunResponse.java
-│   │   ├── EvidenceIntelligenceRunSummaryResponse.java
-│   │   ├── ExtractedEntityPageResponse.java
-│   │   ├── ExtractedEntityResponse.java
-│   │   ├── IntelligenceEntityContent.java
-│   │   ├── IntelligenceEntityReferenceContent.java
-│   │   ├── IntelligenceTimelineEventContent.java
-│   │   ├── TimelineEventPageResponse.java
-│   │   └── TimelineEventResponse.java
-│   ├── entity
-│   │   ├── EvidenceIntelligenceRun.java
-│   │   ├── ExtractedEntity.java
-│   │   ├── ExtractedEntityType.java
-│   │   ├── IntelligenceMethod.java
-│   │   ├── IntelligenceRunStatus.java
-│   │   ├── TimelineEvent.java
-│   │   ├── TimelineEventCertainty.java
-│   │   └── TimelineTemporalPrecision.java
-│   ├── repository
-│   │   ├── EvidenceIntelligenceRunRepository.java
-│   │   ├── ExtractedEntityRepository.java
-│   │   └── TimelineEventRepository.java
-│   └── service
-│       ├── DeterministicEntityExtractor.java
-│       ├── EvidenceIntelligenceRunStartService.java
-│       ├── EvidenceIntelligenceService.java
-│       ├── EvidenceIntelligenceStateService.java
-│       ├── EvidenceIntelligenceTarget.java
-│       ├── EvidenceIntelligenceValidator.java
-│       ├── IntelligenceEntityCandidate.java
-│       ├── IntelligenceEntityNormalizationService.java
-│       └── IntelligenceTimelineCandidate.java
-│
-├── investigation
-│   ├── controller
-│   │   └── InvestigationCaseController.java
-│   ├── dto
-│   │   ├── CaseResponse.java
-│   │   ├── CreateCaseRequest.java
-│   │   ├── UpdateCaseRequest.java
-│   │   └── UpdateCaseStatusRequest.java
-│   ├── entity
-│   │   ├── CasePriority.java
-│   │   ├── CaseStatus.java
-│   │   └── InvestigationCase.java
-│   ├── repository
-│   │   ├── InvestigationCaseRepository.java
-│   │   └── InvestigationCaseSpecifications.java
-│   └── service
-│       └── InvestigationCaseService.java
-│
-├── note
-│   ├── controller
-│   │   └── InvestigatorNoteController.java
-│   ├── dto
-│   │   ├── CreateNoteRequest.java
-│   │   ├── NoteResponse.java
-│   │   └── UpdateNoteRequest.java
-│   ├── entity
-│   │   └── InvestigatorNote.java
-│   ├── repository
-│   │   └── InvestigatorNoteRepository.java
-│   └── service
-│       └── InvestigatorNoteService.java
-│
-├── report
-│   ├── controller
-│   │   └── CaseReportController.java
-│   ├── dto
-│   │   └── CaseReportResponse.java
-│   └── service
-│       └── CaseReportService.java
-│
-├── security
-│   ├── CustomUserDetailsService.java
-│   ├── JwtProperties.java
-│   ├── JwtService.java
-│   └── SecurityConfig.java
-│
-├── system
-│   ├── controller
-│   │   └── SystemStatusController.java
-│   └── service
-│       └── SystemStatusService.java
-│
-├── user
-│   ├── entity
-│   │   ├── Role.java
-│   │   └── User.java
-│   └── repository
-│       └── UserRepository.java
-│
-└── TracelensBackendApplication.java
+├── evidence-storage
+├── pom.xml
+├── README.md
+└── LICENSE
 ```
 
-Resources:
+The following directories and files must remain excluded from Git:
 
 ```text
-src/main/resources
-├── prompts
-│   ├── evidence-analysis-user.st
-│   ├── evidence-intelligence-user.st
-│   └── evidence-preview-user.st
-└── application.properties
+target/
+evidence-storage/
+frontend/node_modules/
+frontend/dist/
+frontend/.env
+frontend/.env.local
 ```
 
 ---
@@ -719,7 +759,7 @@ timeline-event/entity association table
 investigator_notes
 ```
 
-### Relationships
+### Main Relationships
 
 ```text
 User
@@ -735,73 +775,13 @@ Evidence
   └── has many EvidenceIntelligenceRun attempts
 
 EvidenceIntelligenceRun
-  ├── may reference a completed AiEvidenceAnalysis
+  ├── may reference an AiEvidenceAnalysis
   ├── contains ExtractedEntity records
   └── contains TimelineEvent records
 
 TimelineEvent
-  └── may reference multiple involved ExtractedEntity records
+  └── may reference multiple ExtractedEntity records
 ```
-
-### Important Foreign Keys
-
-```text
-investigation_cases.owner_id
-→ users.id
-
-evidence_files.case_id
-→ investigation_cases.id
-
-ai_evidence_analyses.evidence_id
-→ evidence_files.id
-
-ai_analysis_findings.analysis_id
-→ ai_evidence_analyses.id
-
-ai_analysis_actions.analysis_id
-→ ai_evidence_analyses.id
-
-ai_analysis_limitations.analysis_id
-→ ai_evidence_analyses.id
-
-evidence_intelligence_runs.evidence_id
-→ evidence_files.id
-
-evidence_intelligence_runs.source_analysis_id
-→ ai_evidence_analyses.id
-
-extracted_entities.intelligence_run_id
-→ evidence_intelligence_runs.id
-
-timeline_events.intelligence_run_id
-→ evidence_intelligence_runs.id
-
-investigator_notes.case_id
-→ investigation_cases.id
-
-investigator_notes.author_id
-→ users.id
-```
-
-### Main Tables
-
-`users` stores user identity, BCrypt password hashes, roles, active status and timestamps.
-
-`investigation_cases` stores case details, priority, status, owner and timestamps.
-
-`evidence_files` stores evidence metadata, integrity values, extracted text, processing status and timestamps.
-
-`ai_evidence_analyses` stores persistent AI analysis output, lifecycle status, provider metadata, source hashes, token usage and timestamps.
-
-`evidence_intelligence_runs` stores intelligence lifecycle state, generation method, source-analysis reference, provider metadata, source hashes, result counts and timestamps.
-
-`extracted_entities` stores normalised entity values, supporting context, confidence, occurrence counts and character offsets for a specific intelligence run.
-
-`timeline_events` stores ordered event descriptions, temporal expressions, normalised date/time values, temporal precision, certainty, context and entity links.
-
-`investigator_notes` stores case notes, authenticated authors, pinned state, optimistic-lock version and timestamps.
-
-Analysis collection tables preserve ordered findings, actions and limitations. Intelligence and note records remain independently queryable and are aggregated only when the final report is requested.
 
 ---
 
@@ -812,7 +792,9 @@ Install:
 - Java 17 or a compatible newer runtime
 - Maven
 - MySQL 8
+- Node.js and npm
 - Eclipse or Spring Tools
+- Visual Studio Code
 - Git
 - A Groq API key
 
@@ -830,11 +812,11 @@ COLLATE utf8mb4_unicode_ci;
 USE tracelens_db;
 ```
 
-Hibernate creates and updates the required tables when the application starts.
+Hibernate creates and updates the required tables when the backend starts.
 
 ---
 
-## Environment Variables
+## Backend Environment Variables
 
 Required:
 
@@ -852,19 +834,16 @@ DB_URL=jdbc:mysql://localhost:3306/tracelens_db
 EVIDENCE_STORAGE_ROOT=evidence-storage
 GROQ_BASE_URL=https://api.groq.com/openai/v1
 GROQ_MODEL=llama-3.3-70b-versatile
+FRONTEND_URL=http://localhost:5173
 ```
 
-Never commit:
+Multiple allowed frontend origins may be provided as comma-separated values:
 
 ```text
-Database passwords
-JWT secrets
-JWT access tokens
-Groq API keys
-Uploaded evidence
-Temporary evidence backups
-Provider requests or responses containing evidence
+FRONTEND_URL=http://localhost:5173,https://your-frontend-domain.example
 ```
+
+Do not add a trailing slash to an allowed frontend origin.
 
 ### Eclipse Environment Setup
 
@@ -893,90 +872,61 @@ Apply
 
 ---
 
-## Application Configuration
+## Frontend Environment
 
-```properties
-spring.application.name=tracelens-backend
-server.port=8080
+The committed example file is:
 
-spring.datasource.url=${DB_URL:jdbc:mysql://localhost:3306/tracelens_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Kolkata}
-spring.datasource.username=${DB_USERNAME:root}
-spring.datasource.password=${DB_PASSWORD}
-
-spring.jpa.hibernate.ddl-auto=update
-spring.jpa.show-sql=true
-spring.jpa.properties.hibernate.format_sql=true
-spring.jpa.open-in-view=false
-
-app.security.jwt.secret=${JWT_SECRET}
-app.security.jwt.issuer=tracelens-backend
-app.security.jwt.access-token-expiration-minutes=60
-
-spring.servlet.multipart.enabled=true
-spring.servlet.multipart.max-file-size=10MB
-spring.servlet.multipart.max-request-size=11MB
-
-app.evidence.storage-root=${EVIDENCE_STORAGE_ROOT:evidence-storage}
-app.evidence.max-file-size-bytes=10485760
-
-app.evidence.extraction.max-characters=100000
-app.evidence.extraction.max-pdf-pages=100
-app.evidence.extraction.max-csv-rows=5000
-app.evidence.extraction.max-json-depth=50
-app.evidence.extraction.max-error-message-length=1000
-
-spring.ai.model.chat=openai
-spring.ai.openai.api-key=${GROQ_API_KEY}
-spring.ai.openai.base-url=${GROQ_BASE_URL:https://api.groq.com/openai/v1}
-spring.ai.openai.chat.model=${GROQ_MODEL:llama-3.3-70b-versatile}
-spring.ai.openai.chat.temperature=0.1
-spring.ai.openai.chat.max-tokens=1400
-
-spring.ai.retry.max-attempts=3
-spring.ai.retry.backoff.initial-interval=1s
-spring.ai.retry.backoff.multiplier=2
-spring.ai.retry.backoff.max-interval=5s
-spring.ai.retry.on-client-errors=false
-
-app.ai.provider=Groq
-
-app.ai.preview.max-input-characters=30000
-app.ai.preview.max-summary-characters=1200
-app.ai.preview.max-indicators=6
-app.ai.preview.max-limitations=5
-app.ai.preview.max-list-item-characters=300
-app.ai.preview.validation-attempts=2
-
-app.ai.analysis.max-input-characters=30000
-app.ai.analysis.max-summary-characters=2000
-app.ai.analysis.max-findings=8
-app.ai.analysis.max-actions=8
-app.ai.analysis.max-limitations=6
-app.ai.analysis.max-item-characters=500
-app.ai.analysis.validation-attempts=2
-app.ai.analysis.max-failure-message-characters=1000
-app.ai.analysis.prompt-version=evidence-analysis-v1
-app.ai.analysis.response-schema-version=ai-analysis-v1
-
-server.error.include-message=always
-server.error.include-binding-errors=always
+```text
+frontend/.env.example
 ```
 
-Day 9 intelligence limits, prompt/schema versions and validation settings are bound through `IntelligenceExtractionProperties`. Keep these settings in `application.properties` under the intelligence configuration prefix used by the current project.
+Contents:
+
+```env
+VITE_API_BASE_URL=http://localhost:8080
+```
+
+Create a local file:
+
+```text
+frontend/.env
+```
+
+Contents:
+
+```env
+VITE_API_BASE_URL=http://localhost:8080
+```
+
+The real `.env` file must not be committed.
 
 ---
 
-## Running the Application
+## Running the Backend
 
-Run `TracelensBackendApplication.java` as a Spring Boot application.
+Start MySQL first.
 
-Base URL:
+Run:
+
+```text
+TracelensBackendApplication.java
+→ Run As
+→ Spring Boot App
+```
+
+Backend URL:
 
 ```text
 http://localhost:8080
 ```
 
-Successful startup should include:
+Public status endpoint:
+
+```text
+http://localhost:8080/api/system/status
+```
+
+Successful startup should contain:
 
 ```text
 HikariPool-1 - Start completed
@@ -987,16 +937,67 @@ Started TracelensBackendApplication
 
 ---
 
+## Running the Frontend
+
+Open a terminal from the repository root:
+
+```powershell
+cd frontend
+npm install
+npm run dev
+```
+
+Frontend URL:
+
+```text
+http://localhost:5173
+```
+
+Main routes:
+
+```text
+/login
+/register
+/dashboard
+/cases
+/cases/new
+/cases/{caseId}
+```
+
+The frontend and backend must both remain running during local development.
+
+---
+
+## Frontend Quality Checks
+
+From the `frontend` directory:
+
+```powershell
+npm run lint
+npm run build
+```
+
+The production build is created in:
+
+```text
+frontend/dist
+```
+
+The `dist` directory must not be committed.
+
+---
+
 ## Authentication Flow
 
 ```text
-Register user
-→ Hash password with BCrypt
-→ Store user in MySQL
-→ Log in
-→ Generate JWT
-→ Send Bearer token
-→ Access protected APIs
+Register investigator
+→ Password hashed using BCrypt
+→ User stored in MySQL
+→ Investigator logs in
+→ Backend generates JWT
+→ Frontend stores token and safe user data locally
+→ Axios adds Authorization header
+→ Protected routes become available
 ```
 
 Protected request header:
@@ -1010,6 +1011,71 @@ Configured JWT lifetime:
 ```text
 60 minutes
 ```
+
+---
+
+## Frontend Route Protection
+
+Public routes:
+
+```text
+/login
+/register
+```
+
+Protected routes:
+
+```text
+/dashboard
+/cases
+/cases/new
+/cases/{caseId}
+```
+
+When an unauthenticated user opens a protected route, the application redirects to:
+
+```text
+/login
+```
+
+When the backend returns `401`, the frontend removes:
+
+```text
+tracelens_token
+tracelens_user
+```
+
+---
+
+## CORS Configuration
+
+The backend allows the configured frontend origin to call `/api/**`.
+
+Development origin:
+
+```text
+http://localhost:5173
+```
+
+Allowed methods:
+
+```text
+GET
+POST
+PUT
+PATCH
+DELETE
+OPTIONS
+```
+
+Allowed headers:
+
+```text
+Authorization
+Content-Type
+```
+
+Authentication uses a Bearer token rather than browser cookies.
 
 ---
 
@@ -1078,25 +1144,6 @@ GET  /api/intelligence/runs/{runId}/entities
 GET  /api/intelligence/runs/{runId}/timeline
 ```
 
-Supported intelligence query parameters include:
-
-```text
-Run history:
-page
-size
-
-Entities:
-entityType
-page
-size
-
-Timeline:
-certainty
-temporalPrecision
-page
-size
-```
-
 ### Investigator Notes
 
 ```http
@@ -1122,44 +1169,41 @@ All endpoints except the explicitly public routes require authentication.
 
 ---
 
-## API Examples
+## Case Search Parameters
 
-### Register
-
-```http
-POST /api/auth/register
-Content-Type: application/json
-```
-
-```json
-{
-  "fullName": "Example Investigator",
-  "email": "investigator@example.com",
-  "password": "StrongPassword@123"
-}
-```
-
-### Login
+Example:
 
 ```http
-POST /api/auth/login
-Content-Type: application/json
+GET /api/cases?keyword=invoice&status=IN_PROGRESS&priority=HIGH&page=0&size=10&sortBy=updatedAt&sortDirection=desc
 ```
 
-```json
-{
-  "email": "investigator@example.com",
-  "password": "StrongPassword@123"
-}
+Supported filters include:
+
+```text
+keyword
+status
+priority
+page
+size
+sortBy
+sortDirection
 ```
 
-### Create Case
+---
 
-```http
-POST /api/cases
-Authorization: Bearer <token>
-Content-Type: application/json
+## Frontend Case Workflow
+
+```text
+Login
+→ Open investigation case register
+→ Search or filter cases
+→ Create a new case
+→ Receive generated case number
+→ Redirect to case details
+→ Review case overview and metadata
 ```
+
+The frontend sends only:
 
 ```json
 {
@@ -1169,273 +1213,7 @@ Content-Type: application/json
 }
 ```
 
-### Upload Evidence
-
-```powershell
-curl.exe -X POST `
-"http://localhost:8080/api/cases/$caseId/evidence" `
--H "Authorization: Bearer $token" `
--F "file=@$sampleFile;type=text/plain" `
--F "description=Invoice communication evidence"
-```
-
-### Verify Evidence Integrity
-
-```http
-POST /api/evidence/{evidenceId}/verify-integrity
-Authorization: Bearer <token>
-```
-
-### Extract Text
-
-```http
-POST /api/evidence/{evidenceId}/extract-text
-Authorization: Bearer <token>
-```
-
-### Generate Temporary AI Preview
-
-```http
-POST /api/ai/evidence/{evidenceId}/preview
-Authorization: Bearer <token>
-```
-
-### Generate First Persistent Analysis
-
-```http
-POST /api/ai/evidence/{evidenceId}/analyses
-Authorization: Bearer <token>
-```
-
-Allowed only when no previous analysis exists for that evidence.
-
-### Regenerate Analysis
-
-```http
-POST /api/ai/evidence/{evidenceId}/analyses/regenerate
-Authorization: Bearer <token>
-```
-
-Creates a new analysis record and preserves previous attempts.
-
-### Retrieve One Analysis
-
-```http
-GET /api/ai/analyses/{analysisId}
-Authorization: Bearer <token>
-```
-
-### Retrieve Latest Analysis
-
-```http
-GET /api/ai/evidence/{evidenceId}/analyses/latest
-Authorization: Bearer <token>
-```
-
-### Retrieve Analysis History
-
-```http
-GET /api/ai/evidence/{evidenceId}/analyses?page=0&size=10
-Authorization: Bearer <token>
-```
-
-Maximum analysis-history page size: `50`.
-
-### Generate First Intelligence Run
-
-```http
-POST /api/intelligence/evidence/{evidenceId}/runs
-Authorization: Bearer <token>
-```
-
-The evidence must be owned, integrity-verified and successfully processed.
-
-### Regenerate Intelligence
-
-```http
-POST /api/intelligence/evidence/{evidenceId}/runs/regenerate
-Authorization: Bearer <token>
-```
-
-Creates a new run and preserves previous completed and failed runs.
-
-### Retrieve One Intelligence Run
-
-```http
-GET /api/intelligence/runs/{runId}
-Authorization: Bearer <token>
-```
-
-Returns run metadata, extracted entities and timeline events.
-
-### Retrieve Latest Intelligence Run
-
-```http
-GET /api/intelligence/evidence/{evidenceId}/runs/latest
-Authorization: Bearer <token>
-```
-
-### Retrieve Intelligence History
-
-```http
-GET /api/intelligence/evidence/{evidenceId}/runs?page=0&size=10
-Authorization: Bearer <token>
-```
-
-### Filter Run Entities
-
-```http
-GET /api/intelligence/runs/{runId}/entities?entityType=EMAIL_ADDRESS&page=0&size=20
-Authorization: Bearer <token>
-```
-
-### Filter Timeline Events
-
-```http
-GET /api/intelligence/runs/{runId}/timeline?certainty=OBSERVED&temporalPrecision=DATE_TIME&page=0&size=20
-Authorization: Bearer <token>
-```
-
-### Create Investigator Note
-
-```http
-POST /api/cases/{caseId}/notes
-Authorization: Bearer <token>
-Content-Type: application/json
-```
-
-```json
-{
-  "content": "Priority finding requires independent verification.",
-  "pinned": true
-}
-```
-
-### Update Investigator Note
-
-```http
-PUT /api/notes/{noteId}
-Authorization: Bearer <token>
-Content-Type: application/json
-```
-
-```json
-{
-  "content": "Updated investigator note after document review.",
-  "pinned": false
-}
-```
-
-### List Investigator Notes
-
-```http
-GET /api/cases/{caseId}/notes
-Authorization: Bearer <token>
-```
-
-Pinned notes are returned before unpinned notes.
-
-### Delete Investigator Note
-
-```http
-DELETE /api/notes/{noteId}
-Authorization: Bearer <token>
-```
-
-### Generate Final Case Report
-
-```http
-GET /api/cases/{caseId}/report
-Authorization: Bearer <token>
-```
-
-The report contains:
-
-```text
-investigationCase
-evidence
-analyses
-entities
-timeline
-notes
-generatedAt
-disclaimer
-```
-
-The report is assembled from saved database data and does not invoke the AI provider.
-
-### Retrieve Dashboard Analytics
-
-```http
-GET /api/dashboard
-Authorization: Bearer <token>
-```
-
-Example response:
-
-```json
-{
-  "success": true,
-  "message": "Dashboard analytics retrieved successfully",
-  "data": {
-    "totalCases": 6,
-    "openCases": 2,
-    "inProgressCases": 2,
-    "completedCases": 1,
-    "archivedCases": 1,
-    "totalEvidence": 12,
-    "processedEvidence": 9,
-    "highRiskAnalyses": 3,
-    "casesByStatus": [
-      {
-        "status": "OPEN",
-        "count": 2
-      },
-      {
-        "status": "IN_PROGRESS",
-        "count": 2
-      },
-      {
-        "status": "COMPLETED",
-        "count": 1
-      },
-      {
-        "status": "ARCHIVED",
-        "count": 1
-      }
-    ],
-    "casesByPriority": [
-      {
-        "priority": "LOW",
-        "count": 1
-      },
-      {
-        "priority": "MEDIUM",
-        "count": 2
-      },
-      {
-        "priority": "HIGH",
-        "count": 2
-      },
-      {
-        "priority": "CRITICAL",
-        "count": 1
-      }
-    ],
-    "recentlyUpdatedCases": []
-  },
-  "timestamp": "2026-07-23T11:00:00Z"
-}
-```
-
-Dashboard rules:
-
-- Every metric is restricted to the authenticated investigator.
-- The client does not supply an owner ID.
-- The service uses the JWT subject as the normalised owner email.
-- The service executes database count queries.
-- At most five recently updated cases are returned.
-- The endpoint does not invoke Groq or generate new AI output.
+The backend derives ownership from the JWT subject.
 
 ---
 
@@ -1446,77 +1224,16 @@ Default structure:
 ```text
 evidence-storage
 ├── case-5
-│   ├── 8ca31a28-3f74-4a43-9e35-b77aeae660cf.txt
-│   ├── f240eb74-c714-4781-914e-e4e49007188c.pdf
-│   └── 645cc939-815a-46ce-aab7-30bd83fea5b0.json
+│   ├── generated-uuid.txt
+│   ├── generated-uuid.pdf
+│   └── generated-uuid.json
 └── case-7
-    └── cdafdd8a-9ab8-4209-aad9-bbc0fb4d71a7.csv
+    └── generated-uuid.csv
 ```
 
 Original filenames are stored as metadata but are not used as physical filenames.
 
 The storage directory must remain excluded from Git.
-
----
-
-## Supported Evidence Formats
-
-### TXT
-
-- Strict UTF-8 decoding
-- Optional BOM removal
-- Binary-content detection
-- Line-ending normalisation
-- Character-limit enforcement
-
-### CSV
-
-- Header validation
-- Quoted values
-- Commas inside quoted values
-- Escaped quotes
-- Consistent row width
-- Row-limit enforcement
-
-### JSON
-
-- Syntax validation
-- Recursive traversal
-- Flattened key paths
-- Array indexes
-- Nesting-depth enforcement
-
-### PDF
-
-- PDFBox extraction
-- Page-by-page processing
-- Page headings
-- Page-count limit
-- Password and permission checks
-- Invalid-PDF handling
-- Image-only PDF detection
-
-OCR is not currently implemented.
-
----
-
-## Evidence Processing Lifecycle
-
-```text
-UPLOADED
-→ PROCESSING
-→ PROCESSED
-```
-
-On failure:
-
-```text
-UPLOADED
-→ PROCESSING
-→ FAILED
-```
-
-Failed evidence may be processed again.
 
 ---
 
@@ -1538,7 +1255,7 @@ Current file hash == original baseline hash
 Current file hash != original baseline hash
 ```
 
-Text extraction and AI analysis are blocked when an integrity mismatch is detected.
+Text extraction, AI analysis and intelligence generation are blocked when an integrity mismatch is detected.
 
 ---
 
@@ -1559,13 +1276,15 @@ Risk values are preliminary AI classifications, not factual or legal conclusions
 ## AI Prompt Architecture
 
 ```text
-Default system prompt
+Fixed system instructions
 +
 Resource-based user prompt
 +
+Untrusted evidence boundaries
++
 Structured Java-record conversion
 +
-Semantic validator
+Semantic validation
 +
 Mandatory human review
 ```
@@ -1592,381 +1311,9 @@ Protection includes:
 - Structured response mapping
 - Java semantic validation
 - Input and output limits
-- Mandatory human review
+- Mandatory independent review
 
 Prompt controls reduce risk but cannot guarantee complete immunity from adversarial model inputs.
-
----
-
-## AI Preview Limits
-
-```properties
-app.ai.preview.max-input-characters=30000
-app.ai.preview.max-summary-characters=1200
-app.ai.preview.max-indicators=6
-app.ai.preview.max-limitations=5
-app.ai.preview.max-list-item-characters=300
-app.ai.preview.validation-attempts=2
-```
-
----
-
-## Persistent AI Analysis Limits
-
-```properties
-app.ai.analysis.max-input-characters=30000
-app.ai.analysis.max-summary-characters=2000
-app.ai.analysis.max-findings=8
-app.ai.analysis.max-actions=8
-app.ai.analysis.max-limitations=6
-app.ai.analysis.max-item-characters=500
-app.ai.analysis.validation-attempts=2
-app.ai.analysis.max-failure-message-characters=1000
-```
-
-Validation requires:
-
-- Non-empty summary
-- Valid risk level
-- Information-sufficiency value
-- At most eight findings
-- At most eight actions
-- At least one recommended action
-- At most six limitations
-- Items within 500 characters
-- A limitation when information is insufficient
-- At least one finding for `HIGH` or `CRITICAL`
-- Human review always enabled
-
----
-
-## Persistent AI Analysis Lifecycle
-
-### `PENDING`
-
-The database record has been created.
-
-### `PROCESSING`
-
-The provider request is being prepared or executed.
-
-### `COMPLETED`
-
-A valid structured response was generated and stored.
-
-### `FAILED`
-
-The analysis attempt failed due to provider, conversion, validation or unexpected processing failure.
-
-Only a safe application-level failure message is stored. API keys, stack traces and raw provider error bodies are not persisted.
-
----
-
-## Source Hashes
-
-Every persistent analysis stores two SHA-256 values.
-
-### Physical Evidence Hash
-
-```text
-sourceEvidenceSha256
-```
-
-Represents the original physical evidence bytes.
-
-### Extracted Text Hash
-
-```text
-sourceTextSha256
-```
-
-Represents the exact UTF-8 extracted text supplied to the AI provider.
-
-This allows TraceLens to distinguish physical-file changes from extraction-output changes.
-
----
-
-## Initial Analysis and Regeneration Rules
-
-### Initial Generation
-
-```http
-POST /api/ai/evidence/{evidenceId}/analyses
-```
-
-Allowed only when no previous analysis exists.
-
-### Regeneration
-
-```http
-POST /api/ai/evidence/{evidenceId}/analyses/regenerate
-```
-
-Allowed only when at least one previous analysis exists.
-
-Regeneration:
-
-- Creates a new analysis ID
-- Preserves previous completed and failed records
-- Generates new timestamps
-- Stores the new structured response independently
-
----
-
-## Concurrency Protection
-
-TraceLens uses a pessimistic write lock on the evidence row during analysis-record creation.
-
-```text
-Request A
-→ Locks evidence
-→ Checks active analyses
-→ Creates PENDING row
-→ Commits
-→ Releases lock
-
-Request B
-→ Waits
-→ Finds PENDING or PROCESSING analysis
-→ Is rejected
-```
-
-The Groq network call occurs after the lock transaction finishes.
-
----
-
-## Transaction Design
-
-```text
-Transaction 1
-→ Create PENDING
-
-Transaction 2
-→ Mark PROCESSING
-
-No database transaction
-→ Call provider and validate output
-
-Transaction 3
-→ Mark COMPLETED
-
-or
-
-Transaction 3
-→ Mark FAILED
-```
-
-This avoids holding a database transaction during a network request and preserves failure history.
-
----
-
-## Evidence Intelligence Lifecycle
-
-### `PENDING`
-
-The intelligence-run record has been created before the longer extraction workflow begins.
-
-### `PROCESSING`
-
-Deterministic extraction, prompt construction, provider processing and validation are in progress.
-
-### `COMPLETED`
-
-Validated entities and timeline events were stored successfully.
-
-### `FAILED`
-
-The attempt failed due to provider, conversion, validation or unexpected processing failure.
-
-Only a safe application-level failure message is stored. Previous runs are preserved.
-
-### Generation Rules
-
-Initial generation:
-
-```http
-POST /api/intelligence/evidence/{evidenceId}/runs
-```
-
-- Allowed only when no previous intelligence run exists for that evidence.
-- Requires owned, processed evidence with a SHA-256 baseline.
-- Rechecks integrity before generation.
-
-Regeneration:
-
-```http
-POST /api/intelligence/evidence/{evidenceId}/runs/regenerate
-```
-
-- Allowed after at least one previous run exists.
-- Creates a new run ID.
-- Preserves previous completed and failed runs.
-- Rejects a second active request while a run is `PENDING` or `PROCESSING`.
-
----
-
-## Entity and Timeline Model
-
-### Entity Data
-
-Each extracted entity may include:
-
-```text
-entityId
-entityType
-displayValue
-normalizedValue
-contextSnippet
-confidence
-occurrenceCount
-firstCharacterOffset
-lastCharacterOffset
-```
-
-Deterministic and AI-assisted candidates are combined using normalised keys so duplicate values are not repeatedly stored within the same run.
-
-### Timeline Data
-
-Each timeline event may include:
-
-```text
-eventId
-sequenceNumber
-title
-description
-temporalExpression
-normalizedDateTime
-temporalPrecision
-certainty
-contextSnippet
-involvedEntities
-```
-
-Timeline events are returned chronologically where a normalised date/time exists. Undated or unresolved events are placed after dated events in the final report.
-
----
-
-## Investigator Notes
-
-Notes are manual investigator-authored records and are not generated by the AI provider.
-
-Rules:
-
-- The case must belong to the authenticated investigator.
-- The author is resolved from the JWT subject and database user.
-- Content must not be blank.
-- Content must not exceed 5,000 characters.
-- Pinned notes are returned first.
-- Newer notes appear first within pinned and unpinned groups.
-- Updates use optimistic locking.
-- Missing and unowned notes return a safe `404`.
-
----
-
-## Final Case Report
-
-Endpoint:
-
-```http
-GET /api/cases/{caseId}/report
-```
-
-The service first verifies case ownership and then aggregates safe response DTOs.
-
-Ordering:
-
-```text
-Evidence  → uploadedAt ascending
-Analyses  → higher risk first
-Entities  → entity type and normalised value
-Timeline  → chronological, undated last
-Notes     → pinned first, then newest
-```
-
-Mandatory disclaimer:
-
-```text
-AI-generated findings are investigative aids and must be independently verified.
-```
-
-The Day 10 backend report is JSON. Browser printing and presentation belong to the frontend phase; direct PDF generation is optional after the MVP.
-
-The report never exposes:
-
-```text
-storagePath
-storageRelativePath
-passwordHash
-JWT claims
-accessToken
-raw provider credentials
-internal exception details
-```
-
----
-
-## Dashboard Analytics Design
-
-Endpoint:
-
-```http
-GET /api/dashboard
-```
-
-The dashboard is a read-only backend aggregation endpoint. It does not create or modify cases, evidence, analyses or intelligence records.
-
-### Response Fields
-
-```text
-totalCases
-openCases
-inProgressCases
-completedCases
-archivedCases
-totalEvidence
-processedEvidence
-highRiskAnalyses
-casesByStatus
-casesByPriority
-recentlyUpdatedCases
-```
-
-### Aggregation Rules
-
-```text
-Case totals
-→ Count only cases owned by the authenticated investigator
-
-Evidence totals
-→ Count only evidence belonging to the investigator's cases
-
-Processed evidence
-→ Count evidence where status = PROCESSED
-
-High-risk analyses
-→ Count stored analysis records where riskLevel = HIGH
-  through the analysis → evidence → case → owner path
-
-Recently updated cases
-→ Maximum 5
-→ updatedAt descending
-→ id descending as the tie-breaker
-```
-
-All status categories and all priority categories are returned even when their count is zero. This provides a stable response shape for frontend cards and charts.
-
-### Efficiency
-
-The dashboard service uses Spring Data count queries and one small paginated recent-case query. It does not retrieve every case, evidence record or analysis record and count them in Java.
-
-### Security
-
-- Authentication is mandatory.
-- Ownership comes from the JWT subject.
-- The client never sends an owner ID.
-- Another investigator's data is excluded at the repository-query level.
-- Recent cases are returned through `CaseResponse`, not raw JPA entities.
-- The endpoint does not expose evidence text, file paths, password hashes, tokens or AI-provider credentials.
 
 ---
 
@@ -1983,24 +1330,17 @@ Authenticated user
 → Investigation case
 → Evidence
 → AI analysis
-→ Intelligence run
-→ Extracted entities and timeline
-
-Authenticated user
-→ Investigation case
-→ Investigator notes
-→ Final report
-
-Authenticated user
-→ Dashboard analytics
-→ Owned case, evidence and analysis metrics only
+→ Intelligence
+→ Notes
+→ Report
+→ Dashboard
 ```
 
-Repository and service lookups include the ownership path wherever data is retrieved through an external identifier. An unowned identifier is treated the same as a missing identifier.
+Ownership is derived from the JWT subject. The client never submits an owner ID.
 
 ### Secret Management
 
-Secrets are stored as environment variables and must never be committed.
+Secrets are stored through environment variables and must never be committed.
 
 ### Filesystem Safety
 
@@ -2010,156 +1350,137 @@ Secrets are stored as environment variables and must never be committed.
 - Case-specific directories
 - Internal paths hidden from API responses
 
-### Safe DTO Aggregation
+### Safe DTO Output
 
-The report and dashboard return response DTOs rather than exposing JPA entities directly. This prevents lazy relationships and internal persistence fields from being serialised accidentally.
+Controllers return response DTOs rather than JPA entities.
 
 ### Safe Logging
 
-Logs do not intentionally include JWT values, Groq API keys, database passwords, evidence text, provider authorisation headers or complete provider error bodies.
+Logs do not intentionally include:
+
+- JWT values
+- Groq API keys
+- Database passwords
+- Complete evidence text
+- Provider authorisation headers
+- Complete provider error bodies
 
 ### Mandatory Human Review
 
-Every AI preview, persistent AI analysis and intelligence run keeps human review enabled.
-
-The final report also includes the mandatory independent-verification disclaimer.
+Every AI preview, persistent analysis and intelligence run requires independent human review.
 
 ---
 
 ## Error Handling
 
-TraceLens currently handles:
+TraceLens handles:
 
-- Request validation failures with `400`
+- Validation failures with `400`
 - Malformed JSON with `400`
-- Invalid enum or query values with `400`
+- Invalid enums and query values with `400`
 - Invalid pagination and sorting with `400`
 - Invalid evidence files with `400`
-- Evidence-integrity mismatches with `400`
-- Unprocessed evidence analysis or intelligence generation with `400`
-- Oversized AI or intelligence input with `400`
-- Duplicate initial analysis with `400`
-- Analysis regeneration without history with `400`
-- Concurrent analysis request with `400`
-- Duplicate initial intelligence generation with `400`
-- Intelligence regeneration without history with `400`
-- Concurrent intelligence-run request with `400`
-- Blank note content with `400`
-- Note content over 5,000 characters with `400`
+- Integrity mismatches with `400`
+- Unprocessed evidence operations with `400`
+- Duplicate generation requests with `400`
+- Concurrent analysis or intelligence requests with `400`
+- Blank and oversized notes with `400`
 - Invalid credentials with `401`
 - Missing or invalid JWT with `401`
-- Disabled account with `403`
-- Missing or unowned cases, evidence, analyses, intelligence runs, notes and reports with `404`
+- Disabled accounts with `403`
+- Missing and unowned resources with `404`
 - Duplicate data with `409`
-- Optimistic or database conflicts with `409`
+- Optimistic-lock and database conflicts with `409`
 - Oversized uploads with `413`
-- Unprocessable evidence content with `422`
-- Invalid structured AI or intelligence output with `502`
+- Unprocessable evidence with `422`
+- Invalid structured AI output with `502`
 - Unavailable AI provider with `503`
-- Evidence-storage failure with `500`
-- Unexpected application failure with `500`
+- Storage failures with `500`
+- Unexpected application failures with `500`
+
+The React frontend displays safe backend messages and provides loading, retry and empty states.
 
 ---
 
-## Recommended Test Flow
+## Verified Day 12 Browser Flow
 
 ```text
-1. Register or log in
-2. Create an investigation case
-3. Upload TXT, CSV, JSON or PDF evidence
-4. Verify evidence integrity
-5. Extract text
-6. Generate a temporary AI preview
-7. Generate the first persistent AI analysis
-8. Retrieve the analysis by ID
-9. Retrieve the latest analysis
-10. Retrieve paginated analysis history
-11. Regenerate the analysis
-12. Confirm the previous analysis remains unchanged
-13. Confirm only one concurrent analysis request can start
-14. Generate the first intelligence run
-15. Retrieve the intelligence run by ID
-16. Retrieve the latest intelligence run
-17. Retrieve paginated intelligence history
-18. Filter entities by entity type
-19. Filter timeline events by certainty and temporal precision
-20. Regenerate intelligence
-21. Confirm previous intelligence runs remain unchanged
-22. Confirm only one concurrent intelligence request can start
-23. Create an unpinned investigator note
-24. Create a pinned investigator note
-25. Confirm pinned-first ordering
-26. Update note content and pin state
-27. Confirm blank and oversized notes are rejected
-28. Delete a note and confirm a second deletion returns 404
-29. Generate the final case report
-30. Verify case, evidence, analysis, entity, timeline and note counts
-31. Verify timeline order and pinned-note order
-32. Verify generatedAt and the exact disclaimer
-33. Confirm no storage path, password hash, token or internal field is present
-34. Confirm missing and unowned report access returns 404
-35. Confirm an unauthenticated report request returns 401
-36. Retrieve the authenticated dashboard
-37. Verify totalCases equals the sum of all case-status counts
-38. Verify totalCases equals the sum of all case-priority counts
-39. Verify totalEvidence and processedEvidence against the database
-40. Verify recentlyUpdatedCases contains at most five owned cases
-41. Verify recentlyUpdatedCases is ordered by updatedAt descending
-42. Confirm dashboard retrieval does not call the AI provider
-43. Confirm an unauthenticated dashboard request returns 401
+Start MySQL
+→ Start Spring Boot backend
+→ Start Vite frontend
+→ Open /login
+→ Sign in
+→ Open protected dashboard
+→ Load live owner-restricted analytics
+→ Open investigation cases
+→ Search and filter case records
+→ Create a new investigation case
+→ Redirect to the generated case-details URL
+→ Confirm status, priority, owner and timestamps
+→ Return to case register
+→ Terminate session
+→ Confirm protected routes redirect to login
 ```
 
-All protected operations in a complete flow must use the same authenticated owner.
+Frontend checks completed:
+
+```text
+npm run lint
+npm run build
+```
 
 ---
 
 ## Planned Features
 
-### Day 12 — React Frontend Foundation
+### Day 13 — Evidence and AI Investigation Interface
 
-- React and Vite
-- Authentication pages
-- JWT session handling
-- Protected routes
-- Responsive layout
-- Navbar and sidebar
-- API client
-- Theme foundation
-
-### Day 13 — Investigation Interface
-
-- Dashboard
-- Case management screens
-- Case-detail screen
+- Activate case-details tabs
 - Evidence upload interface
-- Integrity controls
+- Evidence register
+- Download and delete controls
+- Integrity verification
+- Text extraction
 - Extracted-text viewer
-- AI-analysis viewer
-- Entity and timeline interface
-- Investigator notes
-- Final report screen
+- AI-analysis generation
+- AI-analysis history and regeneration
+- Risk and findings interface
+- Entity interface
+- Timeline interface
+- Investigator-note interface
+- Final-report screen
 - Browser printing with print CSS
+- Complete full workflow without PowerShell
 
-### Day 14 — Testing and Documentation
+### Day 14 — Testing, OpenAPI and Hardening
 
-- Service tests
-- Controller tests
-- Security tests
+- Automated service tests
+- Security integration tests
+- Evidence validation tests
+- SHA-256 tests
 - OpenAPI documentation
-- Actuator
-- Frontend tests
-- Validation and error-state polish
+- Swagger UI
+- Actuator health monitoring
+- Security audit
+- Ownership audit
+- Backend production package verification
+- Frontend production-build verification
 
 ### Day 15 — Deployment and Presentation
 
 - Backend deployment
 - Frontend deployment
-- Production environment configuration
-- Database deployment
-- Demonstration workflow
-- Resume project description
-- LinkedIn project description
-- Interview preparation
+- Cloud MySQL configuration
+- Persistent evidence storage
+- Production CORS
+- SPA route rewriting
+- Live demonstration workflow
+- GitHub repository polish
+- Architecture and database diagrams
+- Project screenshots
+- Resume description
+- LinkedIn description
+- Interview questions and explanations
 
 ---
 
@@ -2181,6 +1502,10 @@ DB_PASSWORD
 JWT_SECRET
 GROQ_API_KEY
 JWT access tokens
+frontend/.env
+frontend/.env.local
+frontend/node_modules/
+frontend/dist/
 evidence-storage/
 target/
 Uploaded evidence
