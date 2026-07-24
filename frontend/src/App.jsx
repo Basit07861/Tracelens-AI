@@ -8,8 +8,11 @@ import {
 import Layout from "./components/Layout";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { AuthProvider } from "./context/AuthContext";
+import CaseDetailsPage from "./pages/CaseDetailsPage";
+import CasesPage from "./pages/CasesPage";
 import DashboardPage from "./pages/DashboardPage";
 import LoginPage from "./pages/LoginPage";
+import NewCasePage from "./pages/NewCasePage";
 import RegisterPage from "./pages/RegisterPage";
 
 export default function App() {
@@ -29,6 +32,21 @@ export default function App() {
               <Route
                 path="/dashboard"
                 element={<DashboardPage />}
+              />
+
+              <Route
+                path="/cases"
+                element={<CasesPage />}
+              />
+
+              <Route
+                path="/cases/new"
+                element={<NewCasePage />}
+              />
+
+              <Route
+                path="/cases/:caseId"
+                element={<CaseDetailsPage />}
               />
             </Route>
           </Route>
