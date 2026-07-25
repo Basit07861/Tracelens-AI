@@ -6,7 +6,46 @@ import {
 } from "react-router-dom";
 
 import api from "../api/client";
+import EvidencePanel from "../components/case/EvidencePanel";
 import "./CasesPage.css";
+
+const CASE_TABS = [
+  {
+    id: "overview",
+    label: "OVERVIEW",
+    enabled: true,
+  },
+  {
+    id: "evidence",
+    label: "EVIDENCE",
+    enabled: true,
+  },
+  {
+    id: "findings",
+    label: "AI FINDINGS",
+    enabled: false,
+  },
+  {
+    id: "entities",
+    label: "ENTITIES",
+    enabled: false,
+  },
+  {
+    id: "timeline",
+    label: "TIMELINE",
+    enabled: false,
+  },
+  {
+    id: "notes",
+    label: "NOTES",
+    enabled: false,
+  },
+  {
+    id: "report",
+    label: "FINAL REPORT",
+    enabled: false,
+  },
+];
 
 function formatEnum(value) {
   if (!value) {
@@ -55,11 +94,100 @@ function getErrorMessage(error) {
   return "The investigation case could not be retrieved.";
 }
 
+function CaseOverview({ caseData }) {
+  return (
+    <>
+      <div className="case-overview-grid">
+        <section className="case-overview-panel">
+          <header className="panel-register-header">
+            <span>INVESTIGATION OVERVIEW</span>
+            <span>REGISTER A</span>
+          </header>
+
+          <div className="case-overview-body">
+            <div className="case-file-badges">
+              <span
+                className={`case-badge status-${caseData.status.toLowerCase()}`}
+              >
+                {formatEnum(caseData.status)}
+              </span>
+
+              <span
+                className={`case-badge priority-${caseData.priority.toLowerCase()}`}
+              >
+                {formatEnum(caseData.priority)}
+              </span>
+            </div>
+
+            <h2>{caseData.title}</h2>
+
+            <p className="case-overview-description">
+              {caseData.description}
+            </p>
+          </div>
+        </section>
+
+        <aside className="case-overview-panel">
+          <header className="panel-register-header">
+            <span>CASE METADATA</span>
+            <span>REGISTER B</span>
+          </header>
+
+          <dl className="case-metadata-register">
+            <div>
+              <dt>CASE NUMBER</dt>
+              <dd>{caseData.caseNumber}</dd>
+            </div>
+
+            <div>
+              <dt>STATUS</dt>
+              <dd>{formatEnum(caseData.status)}</dd>
+            </div>
+
+            <div>
+              <dt>PRIORITY</dt>
+              <dd>{formatEnum(caseData.priority)}</dd>
+            </div>
+
+            <div>
+              <dt>INVESTIGATOR</dt>
+              <dd>{caseData.ownerName}</dd>
+            </div>
+
+            <div>
+              <dt>INVESTIGATOR EMAIL</dt>
+              <dd>{caseData.ownerEmail}</dd>
+            </div>
+
+            <div>
+              <dt>CREATED</dt>
+              <dd>{formatDate(caseData.createdAt)}</dd>
+            </div>
+
+            <div>
+              <dt>LAST UPDATED</dt>
+              <dd>{formatDate(caseData.updatedAt)}</dd>
+            </div>
+          </dl>
+        </aside>
+      </div>
+
+      <div className="case-details-placeholder">
+        Evidence management is now available. AI findings,
+        entities, timeline, notes and the final report will be
+        activated during the remaining Day 13 checkpoints.
+      </div>
+    </>
+  );
+}
+
 export default function CaseDetailsPage() {
   const { caseId } = useParams();
   const location = useLocation();
 
   const [caseData, setCaseData] = useState(null);
+  const [activeTab, setActiveTab] = useState("overview");
+
   const [errorMessage, setErrorMessage] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [reloadKey, setReloadKey] = useState(0);
@@ -103,6 +231,14 @@ export default function CaseDetailsPage() {
     setIsLoading(true);
     setErrorMessage("");
     setReloadKey((currentKey) => currentKey + 1);
+  }
+
+  function handleTabChange(tab) {
+    if (!tab.enabled) {
+      return;
+    }
+
+    setActiveTab(tab.id);
   }
 
   if (isLoading) {
@@ -187,136 +323,33 @@ export default function CaseDetailsPage() {
         className="case-details-tabs"
         aria-label="Case workspace sections"
       >
-        <button
-          className="case-details-tab case-details-tab-active"
-          type="button"
-        >
-          OVERVIEW
-        </button>
-
-        <button
-          className="case-details-tab"
-          type="button"
-          disabled
-        >
-          EVIDENCE
-        </button>
-
-        <button
-          className="case-details-tab"
-          type="button"
-          disabled
-        >
-          AI FINDINGS
-        </button>
-
-        <button
-          className="case-details-tab"
-          type="button"
-          disabled
-        >
-          ENTITIES
-        </button>
-
-        <button
-          className="case-details-tab"
-          type="button"
-          disabled
-        >
-          TIMELINE
-        </button>
-
-        <button
-          className="case-details-tab"
-          type="button"
-          disabled
-        >
-          NOTES
-        </button>
-
-        <button
-          className="case-details-tab"
-          type="button"
-          disabled
-        >
-          FINAL REPORT
-        </button>
+        {CASE_TABS.map((tab) => (
+          <button
+            className={
+              activeTab === tab.id
+                ? "case-details-tab case-details-tab-active"
+                : "case-details-tab"
+            }
+            type="button"
+            key={tab.id}
+            disabled={!tab.enabled}
+            aria-selected={activeTab === tab.id}
+            onClick={() => handleTabChange(tab)}
+          >
+            {tab.label}
+          </button>
+        ))}
       </nav>
 
-      <div className="case-overview-grid">
-        <section className="case-overview-panel">
-          <header className="panel-register-header">
-            <span>INVESTIGATION OVERVIEW</span>
-            <span>REGISTER A</span>
-          </header>
+      {activeTab === "overview" && (
+        <CaseOverview caseData={caseData} />
+      )}
 
-          <div className="case-overview-body">
-            <div className="case-file-badges">
-              <span
-                className={`case-badge status-${caseData.status.toLowerCase()}`}
-              >
-                {formatEnum(caseData.status)}
-              </span>
-
-              <span
-                className={`case-badge priority-${caseData.priority.toLowerCase()}`}
-              >
-                {formatEnum(caseData.priority)}
-              </span>
-            </div>
-
-            <h2>{caseData.title}</h2>
-
-            <p className="case-overview-description">
-              {caseData.description}
-            </p>
-          </div>
-        </section>
-
-        <aside className="case-overview-panel">
-          <header className="panel-register-header">
-            <span>CASE METADATA</span>
-            <span>REGISTER B</span>
-          </header>
-
-          <dl className="case-metadata-register">
-            <div>
-              <dt>CASE NUMBER</dt>
-              <dd>{caseData.caseNumber}</dd>
-            </div>
-
-            <div>
-              <dt>STATUS</dt>
-              <dd>{formatEnum(caseData.status)}</dd>
-            </div>
-
-            <div>
-              <dt>PRIORITY</dt>
-              <dd>{formatEnum(caseData.priority)}</dd>
-            </div>
-
-            <div>
-              <dt>INVESTIGATOR</dt>
-              <dd>{caseData.ownerName}</dd>
-            </div>
-
-            <div>
-              <dt>CREATED</dt>
-              <dd>{formatDate(caseData.createdAt)}</dd>
-            </div>
-
-            <div>
-              <dt>LAST UPDATED</dt>
-              <dd>{formatDate(caseData.updatedAt)}</dd>
-            </div>
-          </dl>
-        </aside>
-      </div>
-
-      <div className="case-details-placeholder">
-        Evidence, AI findings, entities, timeline, notes and
-        final-report tabs will become active during Day 13.
-      </div>
+      {activeTab === "evidence" && (
+        <div style={{ marginTop: "14px" }}>
+          <EvidencePanel caseId={caseId} />
+        </div>
+      )}
     </>
   );
 }
