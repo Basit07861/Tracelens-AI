@@ -7,7 +7,9 @@ import {
 
 import api from "../api/client";
 import AnalysisPanel from "../components/case/AnalysisPanel";
+import EntitiesPanel from "../components/case/EntitiesPanel";
 import EvidencePanel from "../components/case/EvidencePanel";
+import TimelinePanel from "../components/case/TimelinePanel";
 import "./CasesPage.css";
 
 const CASE_TABS = [
@@ -29,12 +31,12 @@ const CASE_TABS = [
   {
     id: "entities",
     label: "ENTITIES",
-    enabled: false,
+    enabled: true,
   },
   {
     id: "timeline",
     label: "TIMELINE",
-    enabled: false,
+    enabled: true,
   },
   {
     id: "notes",
@@ -174,10 +176,10 @@ function CaseOverview({ caseData }) {
       </div>
 
       <div className="case-details-placeholder">
-        Evidence management and persistent AI findings are
-        now available. Entities, timeline, notes and the
-        final report will be activated during the remaining
-        Day 13 checkpoints.
+        Evidence, AI findings, contextual entities and the
+        investigation timeline are available. Notes and the
+        final report will be activated in the next
+        checkpoint.
       </div>
     </>
   );
@@ -362,6 +364,18 @@ export default function CaseDetailsPage() {
       {activeTab === "findings" && (
         <div style={{ marginTop: "14px" }}>
           <AnalysisPanel caseId={caseId} />
+        </div>
+      )}
+
+      {activeTab === "entities" && (
+        <div style={{ marginTop: "14px" }}>
+          <EntitiesPanel caseId={caseId} />
+        </div>
+      )}
+
+      {activeTab === "timeline" && (
+        <div style={{ marginTop: "14px" }}>
+          <TimelinePanel caseId={caseId} />
         </div>
       )}
     </>
