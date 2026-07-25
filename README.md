@@ -1,6 +1,6 @@
 # TraceLens AI
 
-TraceLens AI is an AI-powered digital evidence analysis and investigation platform built with Spring Boot, React and MySQL.
+TraceLens AI is an AI-powered digital evidence analysis and investigation platform built with Spring Boot, React, Spring AI, Groq and MySQL.
 
 It enables authorised investigators to:
 
@@ -25,7 +25,9 @@ It enables authorised investigators to:
 
 ## Current Status
 
-The project implementation is complete through **Day 12** of the development plan.
+The project implementation is complete through **Day 13** of the development plan.
+
+The backend MVP, dashboard analytics, React foundation and complete browser-based investigation workspace are now operational.
 
 ### Completion Status
 
@@ -37,7 +39,11 @@ Authentication interface            Complete
 Protected routing                   Complete
 Live dashboard integration          Complete
 Case-management interface           Complete
-Evidence and AI workspace           Planned for Day 13
+Evidence-management workspace       Complete
+Persistent AI-findings workspace    Complete
+Entity and timeline workspace       Complete
+Investigator-notes workspace        Complete
+Final printable report              Complete
 Automated testing and OpenAPI        Planned for Day 14
 Deployment and presentation         Planned for Day 15
 ```
@@ -92,9 +98,31 @@ Deployment and presentation         Planned for Day 15
 - Case pagination
 - New-case intake form
 - Case creation and redirect flow
-- Case overview and metadata page
-- Loading, empty, error and retry states
-- Responsive desktop and mobile styling
+- Complete case overview and metadata page
+- Evidence upload and registration
+- Evidence format and size validation
+- Evidence metadata and SHA-256 display
+- Integrity verification
+- Extracted-text generation
+- Authenticated evidence download
+- Evidence deletion
+- Processed-evidence selection for AI operations
+- First persistent AI-analysis generation
+- AI-analysis regeneration
+- Risk, summary, findings, actions and limitations display
+- Analysis metadata and history
+- Entity and timeline intelligence generation
+- Entity classification grouping and filtering
+- Timeline certainty and temporal-precision filtering
+- Intelligence regeneration and history
+- Investigator-note creation, editing, pinning and deletion
+- Final aggregated report presentation
+- Report refresh
+- Browser printing and Save as PDF
+- Print-specific A4 styling
+- Loading, empty, error, success and retry states
+- Responsive desktop, tablet and mobile styling
+- ESLint and production-build verification
 
 ---
 
@@ -351,15 +379,55 @@ GET /api/dashboard
 - Reusable protected application layout
 - Responsive sidebar and mobile menu
 - Investigator identity display
-- Session termination
+- Secure session termination
 - Live dashboard metrics
 - Status-distribution register
 - Priority-distribution register
 - Recently updated case records
-- Case register with search and filters
+- Case register with keyword search and filters
 - New-case intake form
-- Case-details overview
-- Responsive loading, error and empty states
+- Case-details overview and metadata
+- Seven active case-workspace tabs:
+  - Overview
+  - Evidence
+  - AI Findings
+  - Entities
+  - Timeline
+  - Notes
+  - Final Report
+- Evidence upload with client-side format and size validation
+- Evidence metadata, status, integrity and SHA-256 display
+- Evidence integrity verification
+- Evidence text extraction
+- Authenticated evidence download
+- Evidence deletion with confirmation
+- Processed-evidence selection
+- First persistent AI-analysis generation
+- AI-analysis regeneration
+- Risk, summary, findings, actions and limitations display
+- Provider, model, token, timestamp and source-hash metadata
+- Saved AI-analysis history
+- Older-analysis retrieval
+- Intelligence generation and regeneration
+- Extracted-entity grouping
+- Entity-type filtering
+- Context, confidence, occurrence-count and offset display
+- Chronological investigation timeline
+- Timeline certainty filtering
+- Timeline temporal-precision filtering
+- Intelligence-run history
+- Investigator-note creation
+- Note editing
+- Note pinning and unpinning
+- Note deletion
+- Pinned-first note ordering
+- Complete final-report presentation
+- Report refresh
+- Print and Save as PDF
+- A4 print styling
+- Application navigation hidden from printed output
+- Mandatory human-review and independent-verification notices
+- Responsive loading, error, success and empty states
 
 ---
 
@@ -560,6 +628,108 @@ GET /api/dashboard
 - Verified ESLint
 - Verified the frontend production build
 
+### Day 13 — Complete Evidence and AI Investigation Interface
+
+#### Checkpoint 1 — Evidence Workspace
+
+- Activated the Evidence case-workspace tab
+- Added evidence upload and registration
+- Added PDF, TXT, CSV and JSON selection
+- Added 10 MB client-side size validation
+- Added supported-format validation
+- Added optional evidence descriptions
+- Added evidence metadata display
+- Added processing and integrity-state display
+- Added SHA-256 display
+- Added authenticated evidence download
+- Added manual integrity verification
+- Added extracted-text generation
+- Added evidence deletion with confirmation
+- Added loading, success, error and empty states
+- Added responsive evidence styling
+- Verified the complete evidence workflow in the browser
+
+#### Checkpoint 2 — Persistent AI Findings
+
+- Activated the AI Findings tab
+- Added processed-evidence selection
+- Added first persistent AI-analysis generation
+- Added analysis regeneration
+- Preserved previous analysis attempts
+- Displayed analysis lifecycle status
+- Displayed preliminary risk classification
+- Displayed factual summary
+- Displayed suspicious findings
+- Displayed recommended verification actions
+- Displayed analysis limitations
+- Displayed information-sufficiency and human-review states
+- Displayed provider, model, prompt and schema metadata
+- Displayed token usage, timestamps and source hashes
+- Added saved analysis history
+- Added older-analysis retrieval
+- Added mandatory independent-review notice
+- Verified first generation, regeneration and history retrieval
+
+#### Checkpoint 3 — Entities and Timeline
+
+- Activated the Entities tab
+- Activated the Timeline tab
+- Added processed-evidence selection for intelligence
+- Added first intelligence generation
+- Added intelligence regeneration
+- Preserved previous intelligence runs
+- Displayed run status, method and metadata
+- Grouped entities by classification
+- Displayed entity values, context and confidence
+- Displayed occurrence counts and character offsets
+- Added entity-type filtering
+- Displayed chronological timeline events
+- Displayed temporal expressions and normalised dates
+- Displayed certainty and temporal precision
+- Displayed involved entities
+- Added certainty filtering
+- Added temporal-precision filtering
+- Added run-history retrieval
+- Added older-run retrieval
+- Added mandatory verification notice
+- Verified entities, timeline, filters, regeneration and history
+
+#### Checkpoint 4 — Investigator Notes and Final Report
+
+- Activated the Notes tab
+- Added investigator-note creation
+- Added 5,000-character client validation
+- Added note editing
+- Added pin and unpin controls
+- Added note deletion with confirmation
+- Added pinned-first note ordering
+- Displayed note author and timestamps
+- Activated the Final Report tab
+- Added report refresh
+- Displayed case overview
+- Displayed evidence metadata and hashes
+- Displayed saved AI analyses
+- Displayed extracted entities
+- Displayed investigation timeline
+- Displayed investigator notes
+- Added mandatory verification disclaimer
+- Added browser printing
+- Added Save as PDF through the browser
+- Added A4 print styling
+- Hid navigation and action controls during printing
+- Verified notes CRUD, report aggregation and print preview
+
+#### Day 13 Quality Verification
+
+- Ran `npm run lint`
+- Ran `npm run build`
+- Verified evidence upload, verification, extraction, download and deletion
+- Verified persistent AI analysis, regeneration and history
+- Verified intelligence generation, filters, regeneration and history
+- Verified note creation, editing, pinning and deletion
+- Verified final-report refresh and print preview
+- Completed the full browser workflow without PowerShell
+
 ---
 
 ## Technology Stack
@@ -588,6 +758,8 @@ GET /api/dashboard
 - JSX
 - CSS
 - Browser `localStorage`
+- Browser Print API
+- Print-specific A4 CSS
 - Responsive forensic interface
 
 ### AI
@@ -656,46 +828,261 @@ Spring Boot REST API
 
 ## Project Structure
 
+The tree below shows the completed source-oriented structure through Day 13. Generated dependency and build directories are shown separately because they must not be committed.
+
 ```text
 TraceLens-AI
 ├── src
-│   └── main
-│       ├── java
-│       │   └── com
-│       │       └── tracelens
-│       │           ├── ai
-│       │           ├── auth
-│       │           ├── common
-│       │           ├── dashboard
-│       │           ├── evidence
-│       │           ├── exception
-│       │           ├── intelligence
-│       │           ├── investigation
-│       │           ├── note
-│       │           ├── report
-│       │           ├── security
-│       │           ├── system
-│       │           ├── user
-│       │           └── TracelensBackendApplication.java
-│       │
-│       └── resources
-│           ├── prompts
-│           │   ├── evidence-analysis-user.st
-│           │   ├── evidence-intelligence-user.st
-│           │   └── evidence-preview-user.st
-│           └── application.properties
+│   ├── main
+│   │   ├── java
+│   │   │   └── com
+│   │   │       └── tracelens
+│   │   │           ├── ai
+│   │   │           │   ├── config
+│   │   │           │   │   ├── AiAnalysisProperties.java
+│   │   │           │   │   ├── AiPreviewProperties.java
+│   │   │           │   │   └── TraceLensAiConfig.java
+│   │   │           │   ├── controller
+│   │   │           │   │   └── AiController.java
+│   │   │           │   ├── dto
+│   │   │           │   │   ├── AiEvidenceAnalysisContent.java
+│   │   │           │   │   ├── AiEvidenceAnalysisHistoryResponse.java
+│   │   │           │   │   ├── AiEvidenceAnalysisResponse.java
+│   │   │           │   │   ├── AiEvidencePreviewContent.java
+│   │   │           │   │   ├── AiEvidencePreviewResponse.java
+│   │   │           │   │   └── AiStatusResponse.java
+│   │   │           │   ├── entity
+│   │   │           │   │   ├── AiAnalysisRequestType.java
+│   │   │           │   │   ├── AiAnalysisStatus.java
+│   │   │           │   │   ├── AiConnectionStatus.java
+│   │   │           │   │   ├── AiEvidenceAnalysis.java
+│   │   │           │   │   └── AiPreviewRiskLevel.java
+│   │   │           │   ├── repository
+│   │   │           │   │   ├── AiEvidenceAnalysisLockRepository.java
+│   │   │           │   │   └── AiEvidenceAnalysisRepository.java
+│   │   │           │   └── service
+│   │   │           │       ├── AiEvidenceAnalysisService.java
+│   │   │           │       ├── AiEvidenceAnalysisStateService.java
+│   │   │           │       ├── AiEvidenceAnalysisTarget.java
+│   │   │           │       ├── AiEvidenceAnalysisValidator.java
+│   │   │           │       ├── AiEvidencePreviewService.java
+│   │   │           │       ├── AiEvidencePreviewValidator.java
+│   │   │           │       └── AiStatusService.java
+│   │   │           │
+│   │   │           ├── auth
+│   │   │           │   ├── controller
+│   │   │           │   │   └── AuthController.java
+│   │   │           │   ├── dto
+│   │   │           │   │   ├── LoginRequest.java
+│   │   │           │   │   ├── LoginResponse.java
+│   │   │           │   │   ├── RegisterRequest.java
+│   │   │           │   │   └── UserResponse.java
+│   │   │           │   └── service
+│   │   │           │       └── AuthService.java
+│   │   │           │
+│   │   │           ├── common
+│   │   │           │   ├── ApiResponse.java
+│   │   │           │   └── PageResponse.java
+│   │   │           │
+│   │   │           ├── dashboard
+│   │   │           │   ├── controller
+│   │   │           │   │   └── DashboardController.java
+│   │   │           │   ├── dto
+│   │   │           │   │   ├── DashboardResponse.java
+│   │   │           │   │   ├── PriorityCount.java
+│   │   │           │   │   └── StatusCount.java
+│   │   │           │   └── service
+│   │   │           │       └── DashboardService.java
+│   │   │           │
+│   │   │           ├── evidence
+│   │   │           │   ├── config
+│   │   │           │   │   ├── EvidenceExtractionProperties.java
+│   │   │           │   │   └── EvidenceProperties.java
+│   │   │           │   ├── controller
+│   │   │           │   │   └── EvidenceController.java
+│   │   │           │   ├── dto
+│   │   │           │   │   ├── EvidenceExtractionResponse.java
+│   │   │           │   │   ├── EvidenceIntegrityResponse.java
+│   │   │           │   │   └── EvidenceResponse.java
+│   │   │           │   ├── entity
+│   │   │           │   │   ├── Evidence.java
+│   │   │           │   │   ├── EvidenceFileType.java
+│   │   │           │   │   ├── EvidenceIntegrityStatus.java
+│   │   │           │   │   └── EvidenceStatus.java
+│   │   │           │   ├── extraction
+│   │   │           │   │   ├── CsvEvidenceTextExtractor.java
+│   │   │           │   │   ├── EvidenceTextExtractor.java
+│   │   │           │   │   ├── EvidenceTextExtractorRegistry.java
+│   │   │           │   │   ├── JsonEvidenceTextExtractor.java
+│   │   │           │   │   ├── PdfEvidenceTextExtractor.java
+│   │   │           │   │   ├── TextExtractionSupport.java
+│   │   │           │   │   └── TxtEvidenceTextExtractor.java
+│   │   │           │   ├── repository
+│   │   │           │   │   └── EvidenceRepository.java
+│   │   │           │   ├── service
+│   │   │           │   │   ├── EvidenceFileValidator.java
+│   │   │           │   │   ├── EvidenceProcessingService.java
+│   │   │           │   │   ├── EvidenceProcessingStateService.java
+│   │   │           │   │   ├── EvidenceProcessingTarget.java
+│   │   │           │   │   └── EvidenceService.java
+│   │   │           │   └── storage
+│   │   │           │       ├── EvidenceFileResource.java
+│   │   │           │       ├── EvidenceStorageService.java
+│   │   │           │       └── StoredEvidenceFile.java
+│   │   │           │
+│   │   │           ├── exception
+│   │   │           │   ├── AiResponseValidationException.java
+│   │   │           │   ├── AiServiceUnavailableException.java
+│   │   │           │   ├── CaseNotFoundException.java
+│   │   │           │   ├── DuplicateEmailException.java
+│   │   │           │   ├── DuplicateEvidenceException.java
+│   │   │           │   ├── ErrorResponse.java
+│   │   │           │   ├── EvidenceNotFoundException.java
+│   │   │           │   ├── EvidenceStorageException.java
+│   │   │           │   ├── EvidenceTextExtractionException.java
+│   │   │           │   ├── GlobalExceptionHandler.java
+│   │   │           │   ├── InvalidEvidenceFileException.java
+│   │   │           │   ├── InvalidRequestException.java
+│   │   │           │   ├── NoteNotFoundException.java
+│   │   │           │   └── UserNotFoundException.java
+│   │   │           │
+│   │   │           ├── intelligence
+│   │   │           │   ├── config
+│   │   │           │   │   └── IntelligenceExtractionProperties.java
+│   │   │           │   ├── controller
+│   │   │           │   │   └── IntelligenceController.java
+│   │   │           │   ├── dto
+│   │   │           │   │   ├── EvidenceIntelligenceContent.java
+│   │   │           │   │   ├── EvidenceIntelligenceRunHistoryResponse.java
+│   │   │           │   │   ├── EvidenceIntelligenceRunResponse.java
+│   │   │           │   │   ├── EvidenceIntelligenceRunSummaryResponse.java
+│   │   │           │   │   ├── ExtractedEntityPageResponse.java
+│   │   │           │   │   ├── ExtractedEntityResponse.java
+│   │   │           │   │   ├── IntelligenceEntityContent.java
+│   │   │           │   │   ├── IntelligenceEntityReferenceContent.java
+│   │   │           │   │   ├── IntelligenceTimelineEventContent.java
+│   │   │           │   │   ├── TimelineEventPageResponse.java
+│   │   │           │   │   └── TimelineEventResponse.java
+│   │   │           │   ├── entity
+│   │   │           │   │   ├── EvidenceIntelligenceRun.java
+│   │   │           │   │   ├── ExtractedEntity.java
+│   │   │           │   │   ├── ExtractedEntityType.java
+│   │   │           │   │   ├── IntelligenceMethod.java
+│   │   │           │   │   ├── IntelligenceRunStatus.java
+│   │   │           │   │   ├── TimelineEvent.java
+│   │   │           │   │   ├── TimelineEventCertainty.java
+│   │   │           │   │   └── TimelineTemporalPrecision.java
+│   │   │           │   ├── repository
+│   │   │           │   │   ├── EvidenceIntelligenceRunRepository.java
+│   │   │           │   │   ├── ExtractedEntityRepository.java
+│   │   │           │   │   └── TimelineEventRepository.java
+│   │   │           │   └── service
+│   │   │           │       ├── DeterministicEntityExtractor.java
+│   │   │           │       ├── EvidenceIntelligenceRunStartService.java
+│   │   │           │       ├── EvidenceIntelligenceService.java
+│   │   │           │       ├── EvidenceIntelligenceStateService.java
+│   │   │           │       ├── EvidenceIntelligenceTarget.java
+│   │   │           │       ├── EvidenceIntelligenceValidator.java
+│   │   │           │       ├── IntelligenceEntityCandidate.java
+│   │   │           │       ├── IntelligenceEntityNormalizationService.java
+│   │   │           │       └── IntelligenceTimelineCandidate.java
+│   │   │           │
+│   │   │           ├── investigation
+│   │   │           │   ├── controller
+│   │   │           │   │   └── InvestigationCaseController.java
+│   │   │           │   ├── dto
+│   │   │           │   │   ├── CaseResponse.java
+│   │   │           │   │   ├── CreateCaseRequest.java
+│   │   │           │   │   ├── UpdateCaseRequest.java
+│   │   │           │   │   └── UpdateCaseStatusRequest.java
+│   │   │           │   ├── entity
+│   │   │           │   │   ├── CasePriority.java
+│   │   │           │   │   ├── CaseStatus.java
+│   │   │           │   │   └── InvestigationCase.java
+│   │   │           │   ├── repository
+│   │   │           │   │   ├── InvestigationCaseRepository.java
+│   │   │           │   │   └── InvestigationCaseSpecifications.java
+│   │   │           │   └── service
+│   │   │           │       └── InvestigationCaseService.java
+│   │   │           │
+│   │   │           ├── note
+│   │   │           │   ├── controller
+│   │   │           │   │   └── InvestigatorNoteController.java
+│   │   │           │   ├── dto
+│   │   │           │   │   ├── CreateNoteRequest.java
+│   │   │           │   │   ├── NoteResponse.java
+│   │   │           │   │   └── UpdateNoteRequest.java
+│   │   │           │   ├── entity
+│   │   │           │   │   └── InvestigatorNote.java
+│   │   │           │   ├── repository
+│   │   │           │   │   └── InvestigatorNoteRepository.java
+│   │   │           │   └── service
+│   │   │           │       └── InvestigatorNoteService.java
+│   │   │           │
+│   │   │           ├── report
+│   │   │           │   ├── controller
+│   │   │           │   │   └── CaseReportController.java
+│   │   │           │   ├── dto
+│   │   │           │   │   └── CaseReportResponse.java
+│   │   │           │   └── service
+│   │   │           │       └── CaseReportService.java
+│   │   │           │
+│   │   │           ├── security
+│   │   │           │   ├── CustomUserDetailsService.java
+│   │   │           │   ├── JwtProperties.java
+│   │   │           │   ├── JwtService.java
+│   │   │           │   └── SecurityConfig.java
+│   │   │           │
+│   │   │           ├── system
+│   │   │           │   ├── controller
+│   │   │           │   │   └── SystemStatusController.java
+│   │   │           │   └── service
+│   │   │           │       └── SystemStatusService.java
+│   │   │           │
+│   │   │           ├── user
+│   │   │           │   ├── entity
+│   │   │           │   │   ├── Role.java
+│   │   │           │   │   └── User.java
+│   │   │           │   └── repository
+│   │   │           │       └── UserRepository.java
+│   │   │           │
+│   │   │           └── TracelensBackendApplication.java
+│   │   │
+│   │   └── resources
+│   │       ├── prompts
+│   │       │   ├── evidence-analysis-user.st
+│   │       │   ├── evidence-intelligence-user.st
+│   │       │   └── evidence-preview-user.st
+│   │       └── application.properties
+│   │
+│   └── test
+│       └── java
+│           └── com
+│               └── tracelens
 │
 ├── frontend
 │   ├── public
 │   ├── src
 │   │   ├── api
 │   │   │   └── client.js
+│   │   ├── assets
 │   │   ├── components
+│   │   │   ├── case
+│   │   │   │   ├── AnalysisPanel.css
+│   │   │   │   ├── AnalysisPanel.jsx
+│   │   │   │   ├── EntitiesPanel.jsx
+│   │   │   │   ├── EvidencePanel.css
+│   │   │   │   ├── EvidencePanel.jsx
+│   │   │   │   ├── IntelligencePanel.css
+│   │   │   │   ├── IntelligencePanel.jsx
+│   │   │   │   ├── NotesPanel.css
+│   │   │   │   ├── NotesPanel.jsx
+│   │   │   │   ├── ReportPanel.css
+│   │   │   │   ├── ReportPanel.jsx
+│   │   │   │   └── TimelinePanel.jsx
 │   │   │   ├── Layout.jsx
 │   │   │   ├── ProtectedRoute.jsx
-│   │   │   ├── TraceLensMark.jsx
-│   │   │   ├── case
-│   │   │   └── common
+│   │   │   └── TraceLensMark.jsx
 │   │   ├── context
 │   │   │   ├── AuthContext.jsx
 │   │   │   ├── auth-context.js
@@ -715,16 +1102,21 @@ TraceLens-AI
 │   ├── .env.example
 │   ├── eslint.config.js
 │   ├── index.html
+│   ├── package-lock.json
 │   ├── package.json
 │   └── vite.config.js
 │
 ├── evidence-storage
+├── target
+├── .gitignore
+├── LICENSE
+├── mvnw
+├── mvnw.cmd
 ├── pom.xml
-├── README.md
-└── LICENSE
+└── README.md
 ```
 
-The following directories and files must remain excluded from Git:
+Generated and local-only paths must remain excluded from Git:
 
 ```text
 target/
@@ -733,6 +1125,8 @@ frontend/node_modules/
 frontend/dist/
 frontend/.env
 frontend/.env.local
+.env
+*.log
 ```
 
 ---
@@ -1191,19 +1585,36 @@ sortDirection
 
 ---
 
-## Frontend Case Workflow
+## Complete Frontend Investigation Workflow
 
 ```text
-Login
-→ Open investigation case register
-→ Search or filter cases
+Register or log in
+→ Open the owner-restricted dashboard
+→ Review live case and evidence analytics
+→ Open the investigation case register
+→ Search or filter existing cases
 → Create a new case
-→ Receive generated case number
-→ Redirect to case details
+→ Receive the generated case number
+→ Redirect to the case-details workspace
 → Review case overview and metadata
+→ Upload PDF, TXT, CSV or JSON evidence
+→ Verify evidence integrity
+→ Extract evidence text
+→ Generate the first persistent AI analysis
+→ Review risk, summary, findings, actions and limitations
+→ Regenerate the analysis when required
+→ Open saved analysis history
+→ Generate entity and timeline intelligence
+→ Filter extracted entities
+→ Filter reconstructed timeline events
+→ Regenerate intelligence when required
+→ Open intelligence-run history
+→ Add, edit, pin or delete investigator notes
+→ Refresh the final report
+→ Print or save the report as PDF
 ```
 
-The frontend sends only:
+The new-case form sends only:
 
 ```json
 {
@@ -1213,7 +1624,7 @@ The frontend sends only:
 }
 ```
 
-The backend derives ownership from the JWT subject.
+The backend derives case ownership from the JWT subject. Evidence ownership, analyses, intelligence runs, notes and reports are then resolved through the owned case relationship.
 
 ---
 
@@ -1402,69 +1813,91 @@ The React frontend displays safe backend messages and provides loading, retry an
 
 ---
 
-## Verified Day 12 Browser Flow
+## Verified Day 13 Browser Flow
 
 ```text
 Start MySQL
-→ Start Spring Boot backend
-→ Start Vite frontend
+→ Start the Spring Boot backend
+→ Start the Vite frontend
 → Open /login
 → Sign in
-→ Open protected dashboard
+→ Open the protected dashboard
 → Load live owner-restricted analytics
-→ Open investigation cases
+→ Open the investigation case register
 → Search and filter case records
 → Create a new investigation case
-→ Redirect to the generated case-details URL
-→ Confirm status, priority, owner and timestamps
-→ Return to case register
-→ Terminate session
+→ Redirect to the generated case-details route
+→ Confirm case status, priority, owner and timestamps
+→ Open Evidence
+→ Upload supported evidence
+→ Confirm metadata, processing state, integrity state and SHA-256
+→ Manually verify integrity
+→ Extract text
+→ Download the evidence
+→ Open AI Findings
+→ Generate the first persistent analysis
+→ Confirm status, risk, summary, findings, actions and limitations
+→ Regenerate the analysis
+→ Confirm both records remain available in history
+→ Open an older analysis
+→ Open Entities
+→ Generate intelligence
+→ Confirm extracted entity records
+→ Test an entity-type filter
+→ Open Timeline
+→ Confirm chronological timeline events
+→ Test certainty and temporal-precision filters
+→ Regenerate intelligence
+→ Confirm previous runs remain available in history
+→ Open an older intelligence run
+→ Open Notes
+→ Create unpinned and pinned notes
+→ Confirm pinned-first ordering
+→ Edit a note
+→ Change its pin state
+→ Delete a note
+→ Open Final Report
+→ Confirm case, evidence, analyses, entities, timeline and notes
+→ Refresh the report
+→ Open print preview
+→ Confirm application navigation and commands are hidden
+→ Save the report as PDF
+→ Log out
 → Confirm protected routes redirect to login
 ```
 
-Frontend checks completed:
+Frontend quality checks completed:
 
 ```text
 npm run lint
 npm run build
 ```
 
+Day 13 completed the usable browser workflow from authentication through the final printable report.
+
 ---
 
 ## Planned Features
 
-### Day 13 — Evidence and AI Investigation Interface
-
-- Activate case-details tabs
-- Evidence upload interface
-- Evidence register
-- Download and delete controls
-- Integrity verification
-- Text extraction
-- Extracted-text viewer
-- AI-analysis generation
-- AI-analysis history and regeneration
-- Risk and findings interface
-- Entity interface
-- Timeline interface
-- Investigator-note interface
-- Final-report screen
-- Browser printing with print CSS
-- Complete full workflow without PowerShell
-
 ### Day 14 — Testing, OpenAPI and Hardening
 
 - Automated service tests
+- Controller and API tests
 - Security integration tests
+- Authentication tests
+- Ownership tests
 - Evidence validation tests
-- SHA-256 tests
+- SHA-256 integrity tests
+- Invalid-request and negative-path tests
 - OpenAPI documentation
 - Swagger UI
-- Actuator health monitoring
-- Security audit
-- Ownership audit
-- Backend production package verification
-- Frontend production-build verification
+- JWT authorisation in Swagger
+- Spring Boot Actuator
+- Health monitoring
+- Secret and sensitive-data audit
+- Security and ownership audit
+- Backend production-package verification
+- Frontend lint and production-build verification
 
 ### Day 15 — Deployment and Presentation
 
@@ -1472,11 +1905,14 @@ npm run build
 - Frontend deployment
 - Cloud MySQL configuration
 - Persistent evidence storage
+- Production environment variables
 - Production CORS
 - SPA route rewriting
+- Deployment verification
 - Live demonstration workflow
 - GitHub repository polish
-- Architecture and database diagrams
+- Architecture diagram
+- Database relationship diagram
 - Project screenshots
 - Resume description
 - LinkedIn description
