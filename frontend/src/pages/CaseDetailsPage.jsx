@@ -9,6 +9,8 @@ import api from "../api/client";
 import AnalysisPanel from "../components/case/AnalysisPanel";
 import EntitiesPanel from "../components/case/EntitiesPanel";
 import EvidencePanel from "../components/case/EvidencePanel";
+import NotesPanel from "../components/case/NotesPanel";
+import ReportPanel from "../components/case/ReportPanel";
 import TimelinePanel from "../components/case/TimelinePanel";
 import "./CasesPage.css";
 
@@ -41,12 +43,12 @@ const CASE_TABS = [
   {
     id: "notes",
     label: "NOTES",
-    enabled: false,
+    enabled: true,
   },
   {
     id: "report",
     label: "FINAL REPORT",
-    enabled: false,
+    enabled: true,
   },
 ];
 
@@ -60,7 +62,8 @@ function formatEnum(value) {
     .split("_")
     .map(
       (part) =>
-        part.charAt(0).toUpperCase() + part.slice(1),
+        part.charAt(0).toUpperCase() +
+        part.slice(1),
     )
     .join(" ");
 }
@@ -144,12 +147,16 @@ function CaseOverview({ caseData }) {
 
             <div>
               <dt>STATUS</dt>
-              <dd>{formatEnum(caseData.status)}</dd>
+              <dd>
+                {formatEnum(caseData.status)}
+              </dd>
             </div>
 
             <div>
               <dt>PRIORITY</dt>
-              <dd>{formatEnum(caseData.priority)}</dd>
+              <dd>
+                {formatEnum(caseData.priority)}
+              </dd>
             </div>
 
             <div>
@@ -164,22 +171,26 @@ function CaseOverview({ caseData }) {
 
             <div>
               <dt>CREATED</dt>
-              <dd>{formatDate(caseData.createdAt)}</dd>
+              <dd>
+                {formatDate(caseData.createdAt)}
+              </dd>
             </div>
 
             <div>
               <dt>LAST UPDATED</dt>
-              <dd>{formatDate(caseData.updatedAt)}</dd>
+              <dd>
+                {formatDate(caseData.updatedAt)}
+              </dd>
             </div>
           </dl>
         </aside>
       </div>
 
       <div className="case-details-placeholder">
-        Evidence, AI findings, contextual entities and the
-        investigation timeline are available. Notes and the
-        final report will be activated in the next
-        checkpoint.
+        The complete investigation workspace is active.
+        Upload and process evidence, review AI findings,
+        inspect entities and timeline events, add manual
+        notes and generate the final printable report.
       </div>
     </>
   );
@@ -189,15 +200,20 @@ export default function CaseDetailsPage() {
   const { caseId } = useParams();
   const location = useLocation();
 
-  const [caseData, setCaseData] = useState(null);
+  const [caseData, setCaseData] =
+    useState(null);
+
   const [activeTab, setActiveTab] =
     useState("overview");
 
   const [errorMessage, setErrorMessage] =
     useState("");
 
-  const [isLoading, setIsLoading] = useState(true);
-  const [reloadKey, setReloadKey] = useState(0);
+  const [isLoading, setIsLoading] =
+    useState(true);
+
+  const [reloadKey, setReloadKey] =
+    useState(0);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -212,7 +228,9 @@ export default function CaseDetailsPage() {
         );
 
         if (!controller.signal.aborted) {
-          setCaseData(response.data?.data || null);
+          setCaseData(
+            response.data?.data || null,
+          );
         }
       } catch (error) {
         if (
@@ -220,7 +238,9 @@ export default function CaseDetailsPage() {
           error.code !== "ERR_CANCELED" &&
           !controller.signal.aborted
         ) {
-          setErrorMessage(getErrorMessage(error));
+          setErrorMessage(
+            getErrorMessage(error),
+          );
         }
       } finally {
         if (!controller.signal.aborted) {
@@ -237,7 +257,10 @@ export default function CaseDetailsPage() {
   function handleRetry() {
     setIsLoading(true);
     setErrorMessage("");
-    setReloadKey((currentKey) => currentKey + 1);
+
+    setReloadKey(
+      (currentKey) => currentKey + 1,
+    );
   }
 
   function handleTabChange(tab) {
@@ -325,6 +348,7 @@ export default function CaseDetailsPage() {
           style={{ marginTop: "20px" }}
         >
           <span>CASE CREATED</span>
+
           {location.state.successMessage}
         </div>
       )}
@@ -343,8 +367,12 @@ export default function CaseDetailsPage() {
             type="button"
             key={tab.id}
             disabled={!tab.enabled}
-            aria-selected={activeTab === tab.id}
-            onClick={() => handleTabChange(tab)}
+            aria-selected={
+              activeTab === tab.id
+            }
+            onClick={() =>
+              handleTabChange(tab)
+            }
           >
             {tab.label}
           </button>
@@ -376,6 +404,18 @@ export default function CaseDetailsPage() {
       {activeTab === "timeline" && (
         <div style={{ marginTop: "14px" }}>
           <TimelinePanel caseId={caseId} />
+        </div>
+      )}
+
+      {activeTab === "notes" && (
+        <div style={{ marginTop: "14px" }}>
+          <NotesPanel caseId={caseId} />
+        </div>
+      )}
+
+      {activeTab === "report" && (
+        <div style={{ marginTop: "14px" }}>
+          <ReportPanel caseId={caseId} />
         </div>
       )}
     </>
