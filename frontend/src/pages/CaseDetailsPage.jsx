@@ -6,6 +6,7 @@ import {
 } from "react-router-dom";
 
 import api from "../api/client";
+import AnalysisPanel from "../components/case/AnalysisPanel";
 import EvidencePanel from "../components/case/EvidencePanel";
 import "./CasesPage.css";
 
@@ -23,7 +24,7 @@ const CASE_TABS = [
   {
     id: "findings",
     label: "AI FINDINGS",
-    enabled: false,
+    enabled: true,
   },
   {
     id: "entities",
@@ -173,9 +174,10 @@ function CaseOverview({ caseData }) {
       </div>
 
       <div className="case-details-placeholder">
-        Evidence management is now available. AI findings,
-        entities, timeline, notes and the final report will be
-        activated during the remaining Day 13 checkpoints.
+        Evidence management and persistent AI findings are
+        now available. Entities, timeline, notes and the
+        final report will be activated during the remaining
+        Day 13 checkpoints.
       </div>
     </>
   );
@@ -186,9 +188,12 @@ export default function CaseDetailsPage() {
   const location = useLocation();
 
   const [caseData, setCaseData] = useState(null);
-  const [activeTab, setActiveTab] = useState("overview");
+  const [activeTab, setActiveTab] =
+    useState("overview");
 
-  const [errorMessage, setErrorMessage] = useState("");
+  const [errorMessage, setErrorMessage] =
+    useState("");
+
   const [isLoading, setIsLoading] = useState(true);
   const [reloadKey, setReloadKey] = useState(0);
 
@@ -245,7 +250,10 @@ export default function CaseDetailsPage() {
     return (
       <div className="cases-state">
         <span className="dashboard-loader" />
-        <p>Opening secured investigation case file...</p>
+
+        <p>
+          Opening secured investigation case file...
+        </p>
       </div>
     );
   }
@@ -348,6 +356,12 @@ export default function CaseDetailsPage() {
       {activeTab === "evidence" && (
         <div style={{ marginTop: "14px" }}>
           <EvidencePanel caseId={caseId} />
+        </div>
+      )}
+
+      {activeTab === "findings" && (
+        <div style={{ marginTop: "14px" }}>
+          <AnalysisPanel caseId={caseId} />
         </div>
       )}
     </>
