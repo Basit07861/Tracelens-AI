@@ -207,14 +207,14 @@ public class SecurityConfig {
         );
 
         /*
-         * TraceLens sends JWT access tokens through the
-         * Authorization header rather than authentication cookies.
+         * TraceLens uses JWT access tokens in the Authorization
+         * header rather than browser authentication cookies.
          */
         configuration.setAllowCredentials(false);
 
         /*
-         * Browser may cache a successful CORS preflight response
-         * for one hour.
+         * Browsers may cache a successful CORS preflight
+         * response for one hour.
          */
         configuration.setMaxAge(3600L);
 
@@ -249,7 +249,8 @@ public class SecurityConfig {
                 .authorizeHttpRequests(authorize -> authorize
 
                         /*
-                         * Permit browser CORS preflight requests.
+                         * Allow browser CORS preflight requests for
+                         * the React frontend.
                          */
                         .requestMatchers(
                                 HttpMethod.OPTIONS,
@@ -257,12 +258,18 @@ public class SecurityConfig {
                         )
                         .permitAll()
 
+                        /*
+                         * Public application status endpoint.
+                         */
                         .requestMatchers(
                                 HttpMethod.GET,
                                 "/api/system/status"
                         )
                         .permitAll()
 
+                        /*
+                         * Public registration and login endpoints.
+                         */
                         .requestMatchers(
                                 HttpMethod.POST,
                                 "/api/auth/register",
@@ -270,6 +277,36 @@ public class SecurityConfig {
                         )
                         .permitAll()
 
+                        /*
+                         * Public operational health check.
+                         * Detailed health data remains controlled
+                         * by the Actuator configuration.
+                         */
+                        .requestMatchers(
+                                HttpMethod.GET,
+                                "/actuator/health",
+                                "/actuator/health/**"
+                        )
+                        .permitAll()
+
+                        /*
+                         * Public OpenAPI specification and
+                         * Swagger UI assets.
+                         */
+                        .requestMatchers(
+                                HttpMethod.GET,
+                                "/v3/api-docs",
+                                "/v3/api-docs/**",
+                                "/swagger-ui.html",
+                                "/swagger-ui/**"
+                        )
+                        .permitAll()
+
+                        /*
+                         * Actuator info and every TraceLens
+                         * business endpoint not listed above
+                         * require authentication.
+                         */
                         .anyRequest()
                         .authenticated()
                 )
