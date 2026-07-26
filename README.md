@@ -25,9 +25,9 @@ It enables authorised investigators to:
 
 ## Current Status
 
-The project implementation is complete through **Day 13** of the development plan.
+The project implementation is complete through **Day 14** of the development plan.
 
-The backend MVP, dashboard analytics, React foundation and complete browser-based investigation workspace are now operational.
+The backend MVP, dashboard analytics, complete React investigation workspace, automated test suite, OpenAPI documentation, Swagger UI, Actuator monitoring and Day 14 security hardening are now operational. The project is ready for the Day 15 deployment and placement package.
 
 ### Completion Status
 
@@ -44,8 +44,12 @@ Persistent AI-findings workspace    Complete
 Entity and timeline workspace       Complete
 Investigator-notes workspace        Complete
 Final printable report              Complete
-Automated testing and OpenAPI        Planned for Day 14
-Deployment and presentation         Planned for Day 15
+Automated testing and OpenAPI        Complete
+Swagger and Actuator monitoring      Complete
+Security and ownership hardening     Complete
+Backend production-package check     Complete
+Frontend final quality check         Complete
+Deployment and presentation          Planned for Day 15
 ```
 
 ### Implemented So Far
@@ -75,6 +79,14 @@ Deployment and presentation         Planned for Day 15
 - Aggregated final-case reports
 - Dashboard analytics using database aggregation
 - Configurable frontend CORS support
+- Spring Boot Actuator health monitoring
+- OpenAPI 3 JSON documentation
+- Swagger UI with JWT Bearer authorisation
+- Public health and documentation routes with protected business APIs
+- JUnit, Mockito and MockMvc automated testing
+- Investigation, evidence, integrity, security and error-path tests
+- Secret, ignored-file, expired-token and cross-user ownership audits
+- Clean Maven package verification
 
 #### Frontend
 
@@ -155,6 +167,49 @@ Deployment and presentation         Planned for Day 15
 - Missing and unowned resources return the same safe not-found response
 - Internal filesystem paths and security-sensitive fields are excluded from API DTOs
 - Environment-based secret management
+
+### API Documentation, Monitoring and Quality Assurance
+
+- Spring Boot Actuator health monitoring
+- Public health endpoint:
+
+```http
+GET /actuator/health
+```
+
+- Authenticated application-information endpoint:
+
+```http
+GET /actuator/info
+```
+
+- OpenAPI JSON specification:
+
+```http
+GET /v3/api-docs
+```
+
+- Interactive Swagger UI:
+
+```text
+http://localhost:8080/swagger-ui.html
+```
+
+- JWT Bearer authorisation support inside Swagger
+- Public access limited to health, documentation, registration, login and system status
+- Protected investigation and mutating business APIs
+- Automated test suite covering 37 tests
+- Unit tests using JUnit 5 and Mockito
+- Web-security and malformed-request tests using MockMvc
+- Temporary filesystem tests using JUnit `@TempDir`
+- Case-ownership and evidence-ownership negative tests
+- Invalid JWT, expired JWT and unauthorised request verification
+- Malformed JSON, invalid enum, pagination and sorting verification
+- Stable SHA-256 and integrity-mismatch verification
+- Duplicate-evidence cleanup verification
+- Secret and sensitive-data audit
+- Backend clean-package verification
+- Frontend lint and production-build verification
 
 ### Investigation Cases
 
@@ -730,6 +785,112 @@ GET /api/dashboard
 - Verified final-report refresh and print preview
 - Completed the full browser workflow without PowerShell
 
+### Day 14 — Testing, OpenAPI, Actuator and Hardening
+
+#### Checkpoint 1 — API Documentation and Monitoring
+
+- Added Spring Boot Actuator
+- Exposed public `GET /actuator/health`
+- Kept `GET /actuator/info` authenticated
+- Added application information metadata
+- Added Springdoc OpenAPI 3.0.3
+- Exposed public `GET /v3/api-docs`
+- Added Swagger UI at `/swagger-ui.html`
+- Added the `bearerAuth` JWT security scheme
+- Added global JWT authorisation support in Swagger
+- Preserved stateless Spring Security
+- Kept all investigation and mutating business APIs protected
+- Verified public and protected endpoint behaviour
+
+#### Checkpoint 2 — Core Investigation and Evidence Tests
+
+- Added `InvestigationCaseServiceTest`
+- Tested case creation, normalisation and default priority
+- Tested safe not-found behaviour for unowned cases
+- Tested negative pagination
+- Tested unsupported sorting fields
+- Tested invalid sorting directions
+- Added `EvidenceFileValidatorTest`
+- Tested supported file validation and filename sanitisation
+- Tested empty, oversized and unsupported files
+- Tested extension and content-type mismatch handling
+- Tested description-length limits
+- Added `EvidenceStorageServiceTest`
+- Tested case-specific temporary storage
+- Tested UUID stored filenames
+- Tested stable SHA-256 output
+- Tested evidence loading and deletion
+- Tested path-traversal rejection
+- Added `EvidenceServiceTest`
+- Tested verified upload baselines
+- Tested duplicate-evidence cleanup
+- Tested integrity match and mismatch states
+- Tested missing baseline-hash rejection
+- Tested safe not-found behaviour for unowned evidence
+
+#### Checkpoint 3 — Security and Error Integration Tests
+
+- Added `SecurityAndErrorIntegrationTest`
+- Tested public Actuator health access
+- Tested public OpenAPI and Swagger access
+- Tested public system-status access
+- Tested authenticated Actuator information access
+- Tested protected authentication and case APIs
+- Tested missing and malformed Bearer tokens
+- Tested malformed JSON handling
+- Tested registration field validation
+- Tested invalid case-status query handling
+- Tested negative page handling
+- Tested unsupported sorting-field handling
+- Tested configured frontend CORS preflight requests
+- Confirmed safe structured error responses
+
+#### Checkpoint 4 — Final Day 14 Quality Gate
+
+- Completed a source scan for database-password, JWT-secret, Groq-key and JWT-token patterns
+- Confirmed only safe README placeholders were present
+- Confirmed `target/`, `evidence-storage/`, `frontend/node_modules/`, `frontend/dist/` and local environment files remain ignored
+- Verified cross-user case access returns `404 Not Found`
+- Verified cross-user evidence access returns `404 Not Found`
+- Verified expired JWT access returns `401 Unauthorized`
+- Ran the complete Maven test suite
+- Confirmed 37 tests pass with zero failures and zero errors
+- Ran `mvnw.cmd clean package`
+- Confirmed the executable backend JAR is generated successfully
+- Ran `npm run lint`
+- Ran `npm run build`
+- Confirmed the frontend production bundle is generated successfully
+- Completed the final GitHub Desktop sensitive-file audit
+
+### Day 15 — Deployment and Placement Package (Planned)
+
+Day 15 is the final placement-ready completion stage. It will include:
+
+- Production backend Docker configuration
+- `.dockerignore` rules for build output, local settings, evidence and secrets
+- Cloud MySQL configuration
+- Persistent evidence-storage configuration
+- Production environment-variable configuration
+- Production frontend-origin and CORS configuration
+- Backend cloud deployment
+- Frontend production deployment
+- `VITE_API_BASE_URL` production configuration
+- Single-page-application route rewriting
+- Live health, authentication and ownership verification
+- Full deployed workflow verification from login through report
+- GitHub repository polish
+- Architecture diagram
+- Database relationship diagram
+- Product screenshots
+- Live-demo links
+- Reproducible deployment documentation
+- Five-minute demonstration script
+- Resume-ready project bullets
+- LinkedIn project description
+- Interview explanation and question preparation
+
+Day 15 deployment is **not yet marked complete** in this README. Live URLs and deployment-specific values should be added only after the deployed workflow passes verification.
+
 ---
 
 ## Technology Stack
@@ -741,6 +902,9 @@ GET /api/dashboard
 - Spring Web MVC
 - Spring Data JPA
 - Spring Security
+- Spring Boot Actuator
+- Springdoc OpenAPI 3.0.3
+- Swagger UI
 - OAuth2 Resource Server
 - JWT
 - BCrypt
@@ -774,6 +938,20 @@ GET /api/dashboard
 - Semantic validation
 - Provider and application-level retry
 
+### Testing and Quality Tools
+
+- JUnit 5
+- Mockito
+- Spring MockMvc
+- Spring Security Test
+- Spring Boot test starters
+- JUnit temporary directories with `@TempDir`
+- Maven Surefire test execution
+- ESLint
+- Vite production-build verification
+- Swagger UI manual API verification
+- GitHub Desktop change review
+
 ### Evidence Processing
 
 - Java NIO
@@ -795,6 +973,7 @@ GET /api/dashboard
 - Git
 - GitHub
 - GitHub Desktop
+- Swagger UI
 
 ---
 
@@ -817,7 +996,9 @@ Spring Boot REST API
     ├── Entity and Timeline Intelligence
     ├── Investigator Notes
     ├── Reports
-    └── Dashboard Analytics
+    ├── Dashboard Analytics
+    ├── OpenAPI and Swagger Documentation
+    └── Actuator Health Monitoring
           │
           ├── MySQL
           ├── Evidence Storage
@@ -828,7 +1009,7 @@ Spring Boot REST API
 
 ## Project Structure
 
-The tree below shows the completed source-oriented structure through Day 13. Generated dependency and build directories are shown separately because they must not be committed.
+The tree below shows the completed source-oriented structure through Day 14. Generated dependency and build directories are shown separately because they must not be committed.
 
 ```text
 TraceLens-AI
@@ -883,6 +1064,9 @@ TraceLens-AI
 │   │   │           ├── common
 │   │   │           │   ├── ApiResponse.java
 │   │   │           │   └── PageResponse.java
+│   │   │           │
+│   │   │           ├── config
+│   │   │           │   └── OpenApiConfig.java
 │   │   │           │
 │   │   │           ├── dashboard
 │   │   │           │   ├── controller
@@ -1059,6 +1243,18 @@ TraceLens-AI
 │       └── java
 │           └── com
 │               └── tracelens
+│                   ├── TracelensBackendApplicationTests.java
+│                   ├── evidence
+│                   │   ├── service
+│                   │   │   ├── EvidenceFileValidatorTest.java
+│                   │   │   └── EvidenceServiceTest.java
+│                   │   └── storage
+│                   │       └── EvidenceStorageServiceTest.java
+│                   ├── investigation
+│                   │   └── service
+│                   │       └── InvestigationCaseServiceTest.java
+│                   └── security
+│                       └── SecurityAndErrorIntegrationTest.java
 │
 ├── frontend
 │   ├── public
@@ -1314,10 +1510,34 @@ Backend URL:
 http://localhost:8080
 ```
 
-Public status endpoint:
+Public system-status endpoint:
 
 ```text
 http://localhost:8080/api/system/status
+```
+
+Public Actuator health endpoint:
+
+```text
+http://localhost:8080/actuator/health
+```
+
+Authenticated Actuator information endpoint:
+
+```text
+http://localhost:8080/actuator/info
+```
+
+OpenAPI JSON:
+
+```text
+http://localhost:8080/v3/api-docs
+```
+
+Swagger UI:
+
+```text
+http://localhost:8080/swagger-ui.html
 ```
 
 Successful startup should contain:
@@ -1359,6 +1579,42 @@ Main routes:
 ```
 
 The frontend and backend must both remain running during local development.
+
+---
+
+## Backend Quality Checks
+
+From the repository root, keep MySQL running and make the required environment variables available to the terminal.
+
+Run the complete test suite:
+
+```powershell
+.\mvnw.cmd test
+```
+
+Run the clean production package:
+
+```powershell
+.\mvnw.cmd clean package
+```
+
+Verified Day 14 result:
+
+```text
+Tests run: 37
+Failures: 0
+Errors: 0
+Skipped: 0
+BUILD SUCCESS
+```
+
+The packaged backend JAR is created under:
+
+```text
+target/
+```
+
+The `target` directory and generated JAR must not be committed.
 
 ---
 
@@ -1481,6 +1737,17 @@ Authentication uses a Bearer token rather than browser cookies.
 GET  /api/system/status
 POST /api/auth/register
 POST /api/auth/login
+GET  /actuator/health
+GET  /v3/api-docs
+GET  /v3/api-docs/**
+GET  /swagger-ui.html
+GET  /swagger-ui/**
+```
+
+### Authenticated Monitoring
+
+```http
+GET /actuator/info
 ```
 
 ### Authentication
@@ -1780,6 +2047,20 @@ Logs do not intentionally include:
 
 Every AI preview, persistent analysis and intelligence run requires independent human review.
 
+### Verified Day 14 Security Behaviour
+
+- Missing JWT on protected APIs returns `401 Unauthorized`
+- Invalid JWT on protected APIs returns `401 Unauthorized`
+- Expired JWT on protected APIs returns `401 Unauthorized`
+- Cross-user case access returns `404 Not Found`
+- Cross-user evidence access returns `404 Not Found`
+- Malformed JSON returns a safe `400 Bad Request`
+- Invalid enums and query values return a safe `400 Bad Request`
+- Negative pagination and unsafe sorting fields return a safe `400 Bad Request`
+- Valid configured frontend CORS preflight requests are allowed
+- Health and API-documentation routes remain public
+- Investigation and mutating business routes remain protected
+
 ---
 
 ## Error Handling
@@ -1877,46 +2158,67 @@ Day 13 completed the usable browser workflow from authentication through the fin
 
 ---
 
-## Planned Features
+## Verified Day 14 Quality Gate
 
-### Day 14 — Testing, OpenAPI and Hardening
+```text
+Actuator health monitoring             PASS
+OpenAPI JSON documentation             PASS
+Swagger UI                             PASS
+Swagger JWT authorisation              PASS
+Core investigation tests               PASS
+Evidence validation tests              PASS
+Evidence storage and SHA-256 tests     PASS
+Evidence service and integrity tests   PASS
+Security integration tests             PASS
+Malformed-request tests                PASS
+CORS preflight test                     PASS
+Cross-user case ownership              PASS
+Cross-user evidence ownership          PASS
+Expired-token rejection                PASS
+Secret-pattern audit                    PASS
+Ignored-file audit                      PASS
+Backend Maven tests: 37                PASS
+Backend clean package                  PASS
+Frontend lint                           PASS
+Frontend production build              PASS
+Final sensitive-file review             PASS
+```
 
-- Automated service tests
-- Controller and API tests
-- Security integration tests
-- Authentication tests
-- Ownership tests
-- Evidence validation tests
-- SHA-256 integrity tests
-- Invalid-request and negative-path tests
-- OpenAPI documentation
-- Swagger UI
-- JWT authorisation in Swagger
-- Spring Boot Actuator
-- Health monitoring
-- Secret and sensitive-data audit
-- Security and ownership audit
-- Backend production-package verification
-- Frontend lint and production-build verification
+---
+
+## Remaining Work
 
 ### Day 15 — Deployment and Presentation
 
-- Backend deployment
-- Frontend deployment
-- Cloud MySQL configuration
-- Persistent evidence storage
-- Production environment variables
-- Production CORS
-- SPA route rewriting
-- Deployment verification
-- Live demonstration workflow
-- GitHub repository polish
-- Architecture diagram
-- Database relationship diagram
-- Project screenshots
-- Resume description
-- LinkedIn description
-- Interview questions and explanations
+- Add a production multi-stage backend `Dockerfile`
+- Add `.dockerignore`
+- Configure cloud MySQL
+- Configure persistent evidence storage
+- Configure production environment variables
+- Configure production CORS through `FRONTEND_URL`
+- Deploy the Spring Boot backend
+- Set `VITE_API_BASE_URL` to the deployed backend URL
+- Build and deploy the React frontend
+- Add SPA rewriting so nested React routes load after refresh
+- Verify deployed health and system-status endpoints
+- Register a deployment-only test account
+- Verify login and `/api/auth/me`
+- Create a deployed investigation case
+- Upload TXT and PDF evidence
+- Verify integrity and extract text
+- Generate AI analysis and intelligence
+- Add an investigator note
+- Open and print the final report
+- Verify cross-user ownership in production
+- Add live frontend and backend links to this README
+- Add final screenshots
+- Add architecture and database diagrams
+- Polish the repository description and topics
+- Add resume and LinkedIn project descriptions
+- Prepare the five-minute project demonstration
+- Prepare placement-interview explanations
+
+Day 15 remains planned until the deployed end-to-end workflow is verified. Placeholder URLs and credentials must not be presented as completed deployment information.
 
 ---
 
