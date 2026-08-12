@@ -5,7 +5,7 @@ import {
   useNavigate,
 } from "react-router-dom";
 
-import TraceLensMark from "./TraceLensMark";
+import TraceLensMark from "./TracelensMark";
 import { useAuth } from "../context/useAuth";
 
 function getNavLinkClass({ isActive }) {

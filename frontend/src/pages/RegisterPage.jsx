@@ -5,7 +5,7 @@ import {
   useNavigate,
 } from "react-router-dom";
 
-import TraceLensMark from "../components/TraceLensMark";
+import TraceLensMark from "../components/TracelensMark";
 import { useAuth } from "../context/useAuth";
 
 const PASSWORD_PATTERN =
