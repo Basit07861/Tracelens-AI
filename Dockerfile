@@ -17,7 +17,7 @@ WORKDIR /app
 COPY --from=build /app/target/*.jar app.jar
 
 # Expose Spring Boot default port
-EXPOSE 8080
+EXPOSE 10000
 
-# Command to start the backend application
-ENTRYPOINT ["java", "-jar", "app.jar"]
+# Tell Spring Boot to bind to 0.0.0.0 and listen on ${PORT:-10000}
+ENTRYPOINT ["sh", "-c", "java -Dserver.port=${PORT:-10000} -Dserver.address=0.0.0.0 -jar app.jar"]
