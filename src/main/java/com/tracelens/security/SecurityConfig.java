@@ -165,7 +165,7 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource(
             @Value(
-                    "${FRONTEND_URL:http://localhost:5173}"
+                    "${FRONTEND_URL:http://localhost:5173,https://tracelens-ai-75ok.onrender.com}"
             )
             String configuredFrontendOrigins
     ) {
